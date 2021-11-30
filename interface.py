@@ -4,7 +4,7 @@ from pages import *
 
 class UserInterface(tk.Tk):
     def __init__(self):
-        tk.Tk.__init__(self)d
+        tk.Tk.__init__(self)
 
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
 

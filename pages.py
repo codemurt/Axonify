@@ -1,5 +1,7 @@
 import tkinter as tk
 import random
+import sys
+import inspect
 
 
 class StartPage(tk.Frame):
@@ -102,8 +104,16 @@ class PageFour(tk.Frame):
         tk.Button(self, text="Clear last", command=clearLast).grid(row=2, column=10)
         tk.Button(self, text="X", command=clearInput, width=15).grid(row=3, column=0, columnspan=5)
         tk.Button(self, text="Random", command=randomNum, width=24).grid(row=3, column=5, columnspan=6)
-        tk.Button(self, text="Go to the start page", command=lambda: controller.show_frame("StartPage"))\
+        tk.Button(self, text="Go to the start page", command=lambda: controller.show_frame("StartPage")) \
             .grid(row=6, column=0, columnspan=11)
 
 
-active_pages = (StartPage, PageOne, PageTwo, PageThree, PageFour)
+def print_classes():
+    out = []
+    for name, obj in inspect.getmembers(sys.modules[__name__]):
+        if inspect.isclass(obj):
+            out.append(obj)
+    return out
+
+
+active_pages = print_classes()

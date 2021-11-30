@@ -1,11 +1,10 @@
 from tkinter import font as tkfont
 from pages import *
-import pages as pg
 
 
 class UserInterface(tk.Tk):
     def __init__(self):
-        tk.Tk.__init__(self)
+        tk.Tk.__init__(self)d
 
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
 

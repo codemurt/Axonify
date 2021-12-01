@@ -1,114 +1,165 @@
 import tkinter as tk
-import random
 import sys
 import inspect
+import tkinter.ttk as ttk
+from time import sleep
+from tkinter.filedialog import askdirectory
 
 
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is the start page", font=controller.title_font)
+        label = tk.Label(self, text="DSGAN", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
 
-        tk.Button(self, text="Go to Page One", command=lambda: controller.show_frame("PageOne")).pack()
-        tk.Button(self, text="Go to Page Two", command=lambda: controller.show_frame("PageTwo")).pack()
-        tk.Button(self, text="Go to Page Three", command=lambda: controller.show_frame("PageThree")).pack()
-        tk.Button(self, text="Go to Page Four", command=lambda: controller.show_frame("PageFour")).pack()
+        tk.Button(self, text="Generate", command=lambda: controller.show_frame("GeneratorPage")).pack()
+        tk.Button(self, text="Train", command=lambda: controller.show_frame("DatasetSelection")).pack()
 
 
-class PageOne(tk.Frame):
+class GeneratorPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is page 1", font=controller.title_font)
+        label = tk.Label(self, text="Select the number of images to generate:", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
-        tk.Button(self, text="Go to the start page", command=lambda: controller.show_frame("StartPage")).pack()
-        tk.Button(self, text="Go to Page Two", command=lambda: controller.show_frame("PageTwo")).pack()
-        tk.Button(self, text="Go to Page Three", command=lambda: controller.show_frame("PageThree")).pack()
+        inp = tk.Entry(self)
+        inp.pack()
+
+        def generate_pics(imgCount):
+            if imgCount.isdigit():
+                print("WIP")
+                #
+                # do stuff
+                #
+                inp.delete(0, 'end')
+                controller.show_frame("GenerationEnd")
+
+        def show_start():
+            inp.delete(0, 'end')
+            controller.show_frame("StartPage")
+
+        tk.Button(self, text="Generate", command=lambda: generate_pics(inp.get())).pack()
+        tk.Button(self, text="Back", command=show_start).pack()
 
 
-class PageTwo(tk.Frame):
+class GenerationEnd(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is page 2", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-        tk.Button(self, text="Go to the start page", command=lambda: controller.show_frame("StartPage")).pack()
+        tk.Label(self, text='Ready! Your pictures are saved in the "Results" folder.').pack()
+        tk.Button(self, text='Return to menu', command=lambda: controller.show_frame("StartPage")).pack()
 
 
-class PageThree(tk.Frame):
+class DatasetSelection(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is page 3", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-        tk.Button(self, text="Go to the start page", command=lambda: controller.show_frame("StartPage")).pack()
+        tk.Label(self, text='Select dataset:').pack()
+
+        def get_datasets():
+            print("WIP")
+            out = ("Test1", "Test2", "Test3")
+            #
+            # do stuff
+            #
+            out = out.__add__(("Create new dataset...",))
+            return out
+
+        dataset = ttk.Combobox(self, values=get_datasets(), justify=tk.CENTER)
+        dataset.current(0)
+        dataset.pack()
+
+        def next_frame():
+            if dataset.current() == len(dataset["values"]) - 1:
+                controller.show_frame("DatasetCreation")
+            else:
+                global datasetName
+                datasetName = dataset.get()
+                print("WIP " + datasetName)
+                controller.show_frame("ChooseEpochs")
+
+        tk.Button(self, text='Next', command=next_frame).pack()
+
+        def show_start():
+            dataset.current(0)
+            controller.show_frame("StartPage")
+
+        tk.Button(self, text="Back", command=show_start).pack()
 
 
-class PageFour(tk.Frame):
+class DatasetCreation(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        title = tk.Label(self, text="Введите сид")
-        input_label = tk.Entry(self, fg="green", bg="lightgray", borderwidth=5, state=tk.DISABLED)
-        input_label.insert(0, "")
-        output_label = tk.Label(self, text="Тут будет изображение")
+        tk.Label(self, text='Name the dataset').pack()
+        name_label = tk.Entry(self)
+        name_label.pack()
+        dir_label = tk.Label(self)
 
-        def applyClick():
-            text = "Здесь будет картинка"
-            nums = input_label.get()
-            if not nums == "":
-                text += " c номером " + nums
-            output_label['text'] = text
+        def open_filedialog():
+            global pathToNewSet
+            pathToNewSet = askdirectory()
+            dir_label['text'] = "Current path: " + pathToNewSet
+            dir_label.pack()
 
-        def numButtonClick(num):
-            input_label['state'] = tk.NORMAL
-            input_label.insert(tk.END, str(num))
-            input_label['state'] = tk.DISABLED
+        def create_start_train(name):
+            if pathToNewSet != "" and name != "":
+                print("WIP", pathToNewSet, name)
+                #
+                # save set with pathToNewSet and name
+                #
+                controller.show_frame("ChooseEpochs")
 
-        def clearInput():
-            input_label['state'] = tk.NORMAL
-            input_label.delete(0, tk.END)
-            input_label['state'] = tk.DISABLED
-
-        def clearLast():
-            input_label['state'] = tk.NORMAL
-            input_label.delete(len(input_label.get()) - 1, tk.END)
-            input_label['state'] = tk.DISABLED
-
-        def randomNum():
-            clearInput()
-            input_label['state'] = tk.NORMAL
-            input_label.insert(0, str(random.randint(1, 10000)))
-            input_label['state'] = tk.DISABLED
-
-        apply_button = tk.Button(self, text="Сгенерировать", padx=50, pady=20, bg="red", activebackground="green",
-                                 command=applyClick)
-
-        title.grid(row=0, column=0, columnspan=11)
-        input_label.grid(row=1, column=0, columnspan=11)
-        apply_button.grid(row=4, column=0, columnspan=11)
-        output_label.grid(row=5, column=0, columnspan=11)
-
-        tk.Button(self, text=1, command=lambda: numButtonClick(1)).grid(row=2, column=0)
-        tk.Button(self, text=2, command=lambda: numButtonClick(2)).grid(row=2, column=1)
-        tk.Button(self, text=3, command=lambda: numButtonClick(3)).grid(row=2, column=2)
-        tk.Button(self, text=4, command=lambda: numButtonClick(4)).grid(row=2, column=3)
-        tk.Button(self, text=5, command=lambda: numButtonClick(5)).grid(row=2, column=4)
-        tk.Button(self, text=6, command=lambda: numButtonClick(6)).grid(row=2, column=5)
-        tk.Button(self, text=7, command=lambda: numButtonClick(7)).grid(row=2, column=6)
-        tk.Button(self, text=8, command=lambda: numButtonClick(8)).grid(row=2, column=7)
-        tk.Button(self, text=9, command=lambda: numButtonClick(9)).grid(row=2, column=8)
-        tk.Button(self, text=0, command=lambda: numButtonClick(0)).grid(row=2, column=9)
-        tk.Button(self, text="Clear last", command=clearLast).grid(row=2, column=10)
-        tk.Button(self, text="X", command=clearInput, width=15).grid(row=3, column=0, columnspan=5)
-        tk.Button(self, text="Random", command=randomNum, width=24).grid(row=3, column=5, columnspan=6)
-        tk.Button(self, text="Go to the start page", command=lambda: controller.show_frame("StartPage")) \
-            .grid(row=6, column=0, columnspan=11)
+        tk.Button(self, text="Choose the photos folder", command=open_filedialog).pack()
+        tk.Button(self, text="Start to train", command=lambda: create_start_train(name_label.get())).pack()
 
 
-def print_classes():
+class ChooseEpochs(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        tk.Label(self, text='Select the number of epochs:').pack()
+        inp = tk.Entry(self)
+        inp.pack()
+
+        def set_epochs(epochCount):
+            if epochCount.isdigit():
+                print("WIP")
+                global epochCounter
+                epochCounter = int(epochCount)
+                inp.delete(0, 'end')
+                controller.show_frame("Training")
+
+        tk.Button(self, text="Generate", command=lambda: set_epochs(inp.get())).pack()
+
+
+class Training(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        cur_ep = tk.Label(self, text='Current epoch: 0/' + str(epochCounter))
+
+        def start():
+            cur_ep.pack()
+            #
+            # do stuff with "epochCounter" and "datasetName"
+            #
+            sleep(2)
+            controller.show_frame("TrainingEnd")
+
+        tk.Button(self, text="Start training", command=start).pack()
+
+
+class TrainingEnd(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        tk.Button(self, text="Return to menu", command=lambda: controller.show_frame("StartPage")).pack()
+        tk.Button(self, text="Repeat training", command=lambda: controller.show_frame("ChooseEpochs")).pack()
+
+
+def get_classes():
     out = []
     for name, obj in inspect.getmembers(sys.modules[__name__]):
         if inspect.isclass(obj):
@@ -116,4 +167,7 @@ def print_classes():
     return out
 
 
-active_pages = print_classes()
+pathToNewSet = ""
+datasetName = ""
+epochCounter = 0
+active_pages = get_classes()

@@ -1,4 +1,4 @@
-from __future__ import print_function
+# from __future__ import print_function
 
 # import argparse
 import random
@@ -16,7 +16,7 @@ import torchvision.utils as vutils
 
 
 def main():
-    # Set random seed for reproducibilitymanualSeed = 999
+    # Set random seed for reproducibility manualSeed = 999
     # manualSeed = random.randint(1, 10000) # use if you want new results
     manualSeed = 999
     print("Random Seed: ", manualSeed)
@@ -29,14 +29,14 @@ def main():
     dataroot = "Resources/Data"
     pathNetG = "Resources/NetG/gen.pth"
     pathNetD = "Resources/NetD/dis.pth"
-    outputPath = "Resources/ResultsImage"
+    outputPath = "Resources/ResultImages"
     isFirstTrain = True
 
     # Number of workers for dataloader
     workers = 2
 
     # Batch size during training
-    batch_size = 512
+    batch_size = 128
 
     # Spatial size of training images. All images will be resized to this
     #   size using a transformer.
@@ -55,7 +55,7 @@ def main():
     ndf = 64
 
     # Learning rate for optimizers
-    lr = 0.0002
+    lr = 0.002
 
     # Beta1 hyperparam for Adam optimizers
     beta1 = 0.5
@@ -252,9 +252,7 @@ def main():
                 #        '%s/real_samples.png' % outputPath,
                 #        normalize=True)
                 fake = netG(fixed_noise)
-                vutils.save_image(fake.detach(),
-                                  '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%d.%m.%Y_%H_%M_%S"))),
-                                  normalize=True)
+                vutils.save_image(fake.detach(), '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))), normalize=True)
 
             if dry_run:
                 break
@@ -267,6 +265,7 @@ def main():
     # torch.save(netD.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_dis.pth")
     print("Finish training")
     input()
+
 
 if __name__ == '__main__':
     main()

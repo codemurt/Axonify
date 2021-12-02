@@ -13,6 +13,8 @@ import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
+from PIL import Image
+import json
 
 
 def main():
@@ -23,6 +25,9 @@ def main():
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
 
+    with open('vars.json') as f:
+        dataJson = json.load(f)
+
     cudnn.benchmark = True
 
     # Root directory for dataset
@@ -30,7 +35,6 @@ def main():
     pathNetG = "Resources/NetG/gen.pth"
     pathNetD = "Resources/NetD/dis.pth"
     outputPath = "Resources/ResultImages"
-    isFirstTrain = True
 
     # Number of workers for dataloader
     workers = 2
@@ -79,6 +83,34 @@ def main():
     # Decide which device we want to run on
     device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
 
+    def generate(count_of_images=10):
+        netG.eval()
+        with torch.no_grad():
+            for i in range(count_of_images):
+                z = torch.randn(1, 100, 1, 1, device=device)
+                fake = netG(z).detach().cpu()
+                outputPathOneImage = outputPath + f"/generated_{dataJson['image_iterator']}" + ".png"
+                vutils.save_image(fake, outputPathOneImage, normalize=True)
+                resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
+                dataJson['image_iterator'] += 1
+        with open("vars.json", "w") as f:
+            json.dump(dataJson, f)
+
+        print("Images have been generated!")
+
+    def resize_image(input_image_path, output_image_path, size):
+        original_image = Image.open(input_image_path)
+        width, height = original_image.size
+        print('The original image size is {wide} wide x {height} '
+              'high'.format(wide=width, height=height))
+
+        resized_image = original_image.resize(size)
+        width, height = resized_image.size
+        print('The resized image size is {wide} wide x {height} '
+              'high'.format(wide=width, height=height))
+        resized_image.show()
+        resized_image.save(output_image_path)
+
     def weights_init(m):
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
@@ -125,7 +157,7 @@ def main():
 
     netG = Generator(ngpu).to(device)
     netG.apply(weights_init)
-    if not isFirstTrain:
+    if dataJson['epochs'] != 0:
         netG.load_state_dict(torch.load(pathNetG))
         print("loaded netG")
     print(netG)
@@ -165,7 +197,7 @@ def main():
 
     netD = Discriminator(ngpu).to(device)
     netD.apply(weights_init)
-    if not isFirstTrain:
+    if dataJson['epochs'] != 0:
         netD.load_state_dict(torch.load(pathNetD))
         print("loaded netD")
     print(netD)
@@ -181,17 +213,17 @@ def main():
     optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
 
     # Number of training epochs
-    num_epochs = 5
+    num_epochs = 0
 
     netG = Generator(ngpu).to(device)
     netG.apply(weights_init)
-    if not isFirstTrain:
+    if dataJson['epochs'] != 0:
         netG.load_state_dict(torch.load(pathNetG))
         optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
         print("loaded netG and optimizerG")
     netD = Discriminator(ngpu).to(device)
     netD.apply(weights_init)
-    if not isFirstTrain:
+    if dataJson['epochs'] != 0:
         netD.load_state_dict(torch.load(pathNetD))
         optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
         print("loaded netD and optimizerD")
@@ -247,15 +279,13 @@ def main():
                 print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
                       % (epoch, num_epochs, i, len(dataloader),
                          errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
-            if i % 8000 == 0:
-                # vutils.save_image(real_cpu,
-                #        '%s/real_samples.png' % outputPath,
-                #        normalize=True)
+            if i % 30 == 0:
                 fake = netG(fixed_noise)
                 vutils.save_image(fake.detach(), '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))), normalize=True)
 
             if dry_run:
                 break
+        dataJson['epochs'] += 1
         # do checkpointing
     netG.eval()
     netD.eval()
@@ -263,8 +293,12 @@ def main():
     # torch.save(netG.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_gen.pth")
     torch.save(netD.state_dict(), pathNetD)
     # torch.save(netD.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_dis.pth")
+    with open("vars.json", "w") as f:
+        json.dump(dataJson, f)
     print("Finish training")
+    generate(15)
     input()
+
 
 
 if __name__ == '__main__':

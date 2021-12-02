@@ -10,7 +10,7 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="DSGAN", font=controller.title_font)
+        label = tk.Label(self, text="DCGAN", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
 
         tk.Button(self, text="Generate", command=lambda: controller.show_frame("GeneratorPage")).pack()

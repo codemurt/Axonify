@@ -2,3 +2,4 @@ Resources
 .idea
 __pycache__
 vars.json
+RealESRGAN/weight/*

@@ -15,6 +15,7 @@ import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from PIL import Image
 import json
+from RealESRGAN.realesrgan import RealESRGAN
 
 
 def main():
@@ -84,6 +85,9 @@ def main():
     device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
 
     def generate(count_of_images=10):
+        model = RealESRGAN(device, scale=4)
+        model.load_weights('RealESRGAN/weights/RealESRGAN_x4.pth')
+
         netG.eval()
         with torch.no_grad():
             for i in range(count_of_images):
@@ -92,11 +96,17 @@ def main():
                 outputPathOneImage = outputPath + f"/generated_{dataJson['image_iterator']}" + ".png"
                 vutils.save_image(fake, outputPathOneImage, normalize=True)
                 resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
+                improve_quality(model, outputPathOneImage)
                 dataJson['image_iterator'] += 1
         with open("vars.json", "w") as f:
             json.dump(dataJson, f)
 
         print("Images have been generated!")
+
+    def improve_quality(model, path):
+        image = Image.open(path).convert('RGB')
+        sr_image = model.predict(image)
+        sr_image.save(path)
 
     def resize_image(input_image_path, output_image_path, size):
         original_image = Image.open(input_image_path)
@@ -296,9 +306,8 @@ def main():
     with open("vars.json", "w") as f:
         json.dump(dataJson, f)
     print("Finish training")
-    generate(15)
+    generate(1)
     input()
-
 
 
 if __name__ == '__main__':

@@ -1,5 +1,3 @@
-# from __future__ import print_function
-
 # import argparse
 import random
 from datetime import datetime
@@ -16,6 +14,7 @@ import torchvision.utils as vutils
 from PIL import Image
 import json
 from RealESRGAN.realesrgan import RealESRGAN
+import os
 
 
 def main():
@@ -25,6 +24,10 @@ def main():
     print("Random Seed: ", manualSeed)
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
+
+    if not os.path.exists('vars.json'):
+        with open("vars.json", "w") as f:
+            f.write('{"image_iterator": 0, "epochs": 0}')
 
     with open('vars.json') as f:
         dataJson = json.load(f)

@@ -159,7 +159,7 @@ class Training(tk.Frame):
 
         def start():
             cur_ep.pack()
-            main.main(epochCounter, datasetDirectory)
+            train.main(epochCounter, datasetDirectory)
             controller.show_frame("TrainingEnd")
 
         tk.Button(self, text="Start training", command=start).pack()

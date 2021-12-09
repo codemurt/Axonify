@@ -1,4 +1,6 @@
 # import argparse
+import json
+import os
 import random
 from datetime import datetime
 
@@ -12,12 +14,11 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from PIL import Image
-import json
+
 from RealESRGAN.realesrgan import RealESRGAN
-import os
 
 
-def main():
+def main(epoch, dir):
     # Set random seed for reproducibility manualSeed = 999
     # manualSeed = random.randint(1, 10000) # use if you want new results
     manualSeed = 999
@@ -224,7 +225,7 @@ def main():
     optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
 
     # Number of training epochs
-    num_epochs = 0
+    num_epochs = epoch
 
     netG = Generator(ngpu).to(device)
     netG.apply(weights_init)
@@ -289,7 +290,9 @@ def main():
                          errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
             if i % 30 == 0:
                 fake = netG(fixed_noise)
-                vutils.save_image(fake.detach(), '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))), normalize=True)
+                vutils.save_image(fake.detach(),
+                                  '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))),
+                                  normalize=True)
 
         dataJson['epochs'] += 1
         # do checkpointing

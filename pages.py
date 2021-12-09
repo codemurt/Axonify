@@ -1,9 +1,12 @@
-import tkinter as tk
-import sys
 import inspect
+import os
+import sys
+import tkinter as tk
 import tkinter.ttk as ttk
 from time import sleep
 from tkinter.filedialog import askdirectory
+
+import train
 
 
 class StartPage(tk.Frame):
@@ -60,6 +63,9 @@ class DatasetSelection(tk.Frame):
         def get_datasets():
             print("WIP")
             out = ()
+            if not os.path.exists("Resources/datasets.txt"):
+                with open("Resources/datasets.txt", "w") as f:
+                    f.write("")
             datasets_file = open("Resources/datasets.txt", 'r')
             global datasets
             datasets = datasets_file.readlines()
@@ -153,10 +159,7 @@ class Training(tk.Frame):
 
         def start():
             cur_ep.pack()
-            #
-            # do stuff with "epochCounter" and "datasetName"
-            #
-            sleep(2)
+            main.main(epochCounter, datasetDirectory)
             controller.show_frame("TrainingEnd")
 
         tk.Button(self, text="Start training", command=start).pack()

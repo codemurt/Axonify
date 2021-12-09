@@ -60,7 +60,7 @@ class DatasetSelection(tk.Frame):
         def get_datasets():
             print("WIP")
             out = ()
-            datasets_file = open("resources/datasets.txt", 'r')
+            datasets_file = open("Resources/datasets.txt", 'r')
             global datasets
             datasets = datasets_file.readlines()
             datasets_file.close()
@@ -117,8 +117,9 @@ class DatasetCreation(tk.Frame):
                 global datasetDirectory
                 datasetName = name
                 datasetDirectory = self.pathToNewSet
-                datasets_file = open("resources/datasets.txt", 'a')
+                datasets_file = open("Resources/datasets.txt", 'a')
                 datasets_file.write('\n' + datasetName + " " + datasetDirectory)
+                datasets_file.close()
                 controller.show_frame("ChooseEpochs")
 
         tk.Button(self, text="Choose the photos folder", command=open_filedialog).pack()

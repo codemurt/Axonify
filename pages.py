@@ -90,6 +90,7 @@ class DatasetSelection(tk.Frame):
 
 class DatasetCreation(tk.Frame):
     def __init__(self, parent, controller):
+        self.pathToNewSet = ""
         tk.Frame.__init__(self, parent)
         self.controller = controller
         tk.Label(self, text='Name the dataset').pack()
@@ -98,14 +99,15 @@ class DatasetCreation(tk.Frame):
         dir_label = tk.Label(self)
 
         def open_filedialog():
-            global pathToNewSet
-            pathToNewSet = askdirectory()
-            dir_label['text'] = "Current path: " + pathToNewSet
+            self.pathToNewSet = askdirectory()
+            dir_label['text'] = "Current path: " + self.pathToNewSet
             dir_label.pack()
 
         def create_start_train(name):
-            if pathToNewSet != "" and name != "":
-                print("WIP", pathToNewSet, name)
+            if self.pathToNewSet != "" and name != "":
+                print("WIP", self.pathToNewSet, name)
+                global datasetName
+                datasetName = name
                 #
                 # save set with pathToNewSet and name
                 #
@@ -167,7 +169,6 @@ def get_classes():
     return out
 
 
-pathToNewSet = ""
 datasetName = ""
 epochCounter = 0
 active_pages = get_classes()

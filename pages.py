@@ -59,10 +59,14 @@ class DatasetSelection(tk.Frame):
 
         def get_datasets():
             print("WIP")
-            out = ("Test1", "Test2", "Test3")
-            #
-            # do stuff
-            #
+            out = ()
+            datasets_file = open("resources/datasets.txt", 'r')
+            global datasets
+            datasets = datasets_file.readlines()
+            datasets_file.close()
+            for ds in datasets:
+                ds_name = ds.split()[0]
+                out = out.__add__((str(ds_name),))
             out = out.__add__(("Create new dataset...",))
             return out
 
@@ -76,7 +80,10 @@ class DatasetSelection(tk.Frame):
             else:
                 global datasetName
                 datasetName = dataset.get()
-                print("WIP " + datasetName)
+                for i in datasets:
+                    if i.split()[0] == datasetName:
+                        global datasetDirectory
+                        datasetDirectory = i.split()[1]
                 controller.show_frame("ChooseEpochs")
 
         tk.Button(self, text='Next', command=next_frame).pack()
@@ -107,14 +114,15 @@ class DatasetCreation(tk.Frame):
             if self.pathToNewSet != "" and name != "":
                 print("WIP", self.pathToNewSet, name)
                 global datasetName
+                global datasetDirectory
                 datasetName = name
-                #
-                # save set with pathToNewSet and name
-                #
+                datasetDirectory = self.pathToNewSet
+                datasets_file = open("resources/datasets.txt", 'a')
+                datasets_file.write('\n' + datasetName + " " + datasetDirectory)
                 controller.show_frame("ChooseEpochs")
 
         tk.Button(self, text="Choose the photos folder", command=open_filedialog).pack()
-        tk.Button(self, text="Start to train", command=lambda: create_start_train(name_label.get())).pack()
+        tk.Button(self, text="Save and start to train", command=lambda: create_start_train(name_label.get())).pack()
 
 
 class ChooseEpochs(tk.Frame):
@@ -169,6 +177,8 @@ def get_classes():
     return out
 
 
+datasets = []
 datasetName = ""
+datasetDirectory = ""
 epochCounter = 0
 active_pages = get_classes()

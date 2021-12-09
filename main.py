@@ -71,8 +71,6 @@ def main():
     # Number of GPUs available. Use 0 for CPU mode.
     ngpu = 1
 
-    dry_run = False
-
     dataset = dset.ImageFolder(root=dataroot,
                                transform=transforms.Compose([
                                    transforms.Resize(image_size),
@@ -241,9 +239,6 @@ def main():
         optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
         print("loaded netD and optimizerD")
 
-    if dry_run:
-        num_epochs = 1
-
     print("Start training")
     netG.train()
     netD.train()
@@ -296,8 +291,6 @@ def main():
                 fake = netG(fixed_noise)
                 vutils.save_image(fake.detach(), '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))), normalize=True)
 
-            if dry_run:
-                break
         dataJson['epochs'] += 1
         # do checkpointing
     netG.eval()

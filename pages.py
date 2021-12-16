@@ -6,7 +6,7 @@ import tkinter.ttk as ttk
 from tkinter.filedialog import askdirectory
 
 
-# import train
+import train
 
 def get_datasets():
     out = ()
@@ -163,7 +163,7 @@ class Training(tk.Frame):
         self.controller = controller
 
         def start():
-            # train.main(epochCounter, datasetDirectory)
+            train.main(epochCounter, datasetDirectory)
             controller.show_frame("TrainingEnd")
 
         tk.Button(self, text="Start training", command=start).pack()

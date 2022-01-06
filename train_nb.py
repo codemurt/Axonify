@@ -28,7 +28,8 @@ parser.add_argument('--ndf', type=int, default=64)
 parser.add_argument('--epochs', type=int, default=25, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.002, help='learning rate, default=0.0002')
 parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
-parser.add_argument('--isTrainMode', type=int, required=True, default=1, help='is train mode, if not will be create dataset mode')
+parser.add_argument('--mode', type=int, required=True, default=1, help='0 - create dataset, 1 - train mode, 2 - generate images')
+parser.add_argument('--imageCount', type=int, default=1, help='count of images to create')
 parser.add_argument('--datasetName', help='the name for a new dataset')
 parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
 parser.add_argument('--outf', default='.', help='folder to output images and model checkpoints')
@@ -38,30 +39,7 @@ opt = parser.parse_args()
 print(opt)
 path_to_dataset = opt.outf + '/' + opt.datasetName
 
-if opt.isTrainMode == 0:
-    try:
-        os.makedirs(opt.outf)
-    except OSError:
-        pass
-
-    try:
-        os.makedirs(path_to_dataset)
-    except OSError:
-        pass
-
-    try:
-        os.makedirs(path_to_dataset + '/ResultImages')
-    except OSError:
-        pass
-
-    with open(path_to_dataset + "/vars.json", "w") as f:
-        f.write('{"image_iterator": 0, "epochs": 0}')
-else:
-    manualSeed = opt.manualSeed
-    print("Random Seed: ", manualSeed)
-    random.seed(manualSeed)
-    torch.manual_seed(manualSeed)
-
+if opt.mode == 1 or opt.mode == 2:
     with open(path_to_dataset + "/vars.json") as f:
         dataJson = json.load(f)
 
@@ -118,42 +96,6 @@ else:
     # Decide which device we want to run on
     device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
 
-    def generate(count_of_images=10):
-        model = RealESRGAN(device, scale=4)
-        model.load_weights('RealESRGAN/weights/RealESRGAN_x4.pth')
-
-        netG.eval()
-        with torch.no_grad():
-            for i in range(count_of_images):
-                z = torch.randn(1, 100, 1, 1, device=device)
-                fake = netG(z).detach().cpu()
-                outputPathOneImage = outputPath + f"/generated_{dataJson['image_iterator']}" + ".png"
-                vutils.save_image(fake, outputPathOneImage, normalize=True)
-                resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
-                improve_quality(model, outputPathOneImage)
-                dataJson['image_iterator'] += 1
-        with open(path_to_dataset + "/vars.json", "w") as f:
-            json.dump(dataJson, f)
-
-        print("Images have been generated!")
-
-    def improve_quality(model, path):
-        image = Image.open(path).convert('RGB')
-        sr_image = model.predict(image)
-        sr_image.save(path)
-
-    def resize_image(input_image_path, output_image_path, size):
-        original_image = Image.open(input_image_path)
-        width, height = original_image.size
-        print('The original image size is {wide} wide x {height} '
-              'high'.format(wide=width, height=height))
-
-        resized_image = original_image.resize(size)
-        width, height = resized_image.size
-        print('The resized image size is {wide} wide x {height} '
-              'high'.format(wide=width, height=height))
-        resized_image.show()
-        resized_image.save(output_image_path)
 
     def weights_init(m):
         classname = m.__class__.__name__
@@ -162,6 +104,7 @@ else:
         elif classname.find('BatchNorm') != -1:
             torch.nn.init.normal_(m.weight, 1.0, 0.02)
             torch.nn.init.zeros_(m.bias)
+
 
     # Generator Code
 
@@ -199,12 +142,14 @@ else:
                 output = self.main(input)
             return output
 
+
     netG = Generator(ngpu).to(device)
     netG.apply(weights_init)
     if dataJson['epochs'] != 0:
         netG.load_state_dict(torch.load(pathNetG))
         print("loaded netG")
     print(netG)
+
 
     class Discriminator(nn.Module):
         def __init__(self, ngpu):
@@ -239,6 +184,7 @@ else:
 
             return output.view(-1, 1).squeeze(1)
 
+
     netD = Discriminator(ngpu).to(device)
     netD.apply(weights_init)
     if dataJson['epochs'] != 0:
@@ -247,7 +193,7 @@ else:
     print(netD)
 
     criterion = nn.BCELoss()
-
+    
     fixed_noise = torch.randn(batch_size, nz, 1, 1, device=device)
     real_label = 1
     fake_label = 0
@@ -255,6 +201,30 @@ else:
     # setup optimizer
     optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
     optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
+
+if opt.mode == 0:
+    try:
+        os.makedirs(opt.outf)
+    except OSError:
+        pass
+
+    try:
+        os.makedirs(path_to_dataset)
+    except OSError:
+        pass
+
+    try:
+        os.makedirs(path_to_dataset + '/ResultImages')
+    except OSError:
+        pass
+
+    with open(path_to_dataset + "/vars.json", "w") as f:
+        f.write('{"image_iterator": 0, "epochs": 0}')
+elif opt.mode == 1:
+    manualSeed = opt.manualSeed
+    print("Random Seed: ", manualSeed)
+    random.seed(manualSeed)
+    torch.manual_seed(manualSeed)
 
     # Number of training epochs
     num_epochs = opt.epochs
@@ -337,4 +307,42 @@ else:
     with open(path_to_dataset + "/vars.json", "w") as f:
         json.dump(dataJson, f)
     print("Finish training")
-    generate(1)
+else:
+    def generate(count_of_images=10):
+        model = RealESRGAN(device, scale=4)
+        model.load_weights('RealESRGAN/weights/RealESRGAN_x4.pth')
+
+        netG.eval()
+        with torch.no_grad():
+            for i in range(count_of_images):
+                z = torch.randn(1, 100, 1, 1, device=device)
+                fake = netG(z).detach().cpu()
+                outputPathOneImage = outputPath + f"/generated_{dataJson['image_iterator']}" + ".png"
+                vutils.save_image(fake, outputPathOneImage, normalize=True)
+                resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
+                improve_quality(model, outputPathOneImage)
+                dataJson['image_iterator'] += 1
+        with open(path_to_dataset + "/vars.json", "w") as f:
+            json.dump(dataJson, f)
+
+        print("Images have been generated!")
+
+    def improve_quality(model, path):
+        image = Image.open(path).convert('RGB')
+        sr_image = model.predict(image)
+        sr_image.save(path)
+
+    def resize_image(input_image_path, output_image_path, size):
+        original_image = Image.open(input_image_path)
+        width, height = original_image.size
+        print('The original image size is {wide} wide x {height} '
+              'high'.format(wide=width, height=height))
+
+        resized_image = original_image.resize(size)
+        width, height = resized_image.size
+        print('The resized image size is {wide} wide x {height} '
+              'high'.format(wide=width, height=height))
+        resized_image.show()
+        resized_image.save(output_image_path)
+
+    generate(opt.imageCount)

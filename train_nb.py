@@ -38,7 +38,7 @@ opt = parser.parse_args()
 print(opt)
 path_to_dataset = opt.outf + '/' + opt.datasetName
 
-if opt.IsTrainMode == 0:
+if opt.isTrainMode == 0:
     try:
         os.makedirs(opt.outf)
     except OSError:

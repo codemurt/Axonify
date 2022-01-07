@@ -7,7 +7,7 @@ import tkinter.ttk as ttk
 from tkinter.filedialog import askdirectory
 
 
-# import train
+import train
 
 def get_datasets():
     out = ()
@@ -161,7 +161,7 @@ class ChooseEpochs(tk.Frame):
                 global epochCounter
                 epochCounter = int(epochCount)
                 inp.delete(0, 'end')
-                # train.main(epochCounter, jsonDirectory, datasetDirectory)
+                train.main(epochCounter, "Resources/" + datasetName, datasetDirectory)
                 print(epochCounter, datasetDirectory, datasetName)
                 controller.show_frame("TrainingEnd")
 

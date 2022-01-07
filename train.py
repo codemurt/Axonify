@@ -18,7 +18,7 @@ from PIL import Image
 from RealESRGAN.realesrgan import RealESRGAN
 
 
-def main(epoch, dir):
+def main(epoch, directory, dsPath):
     # Set random seed for reproducibility manualSeed = 999
     # manualSeed = random.randint(1, 10000) # use if you want new results
     manualSeed = 999
@@ -26,20 +26,16 @@ def main(epoch, dir):
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
 
-    if not os.path.exists('vars.json'):
-        with open("vars.json", "w") as f:
-            f.write('{"image_iterator": 0, "epochs": 0}')
-
-    with open('vars.json') as f:
+    with open(directory + '/vars.json') as f:
         dataJson = json.load(f)
 
     cudnn.benchmark = True
 
     # Root directory for dataset
-    dataroot = "Resources/Data"
-    pathNetG = "Resources/NetG/gen.pth"
-    pathNetD = "Resources/NetD/dis.pth"
-    outputPath = "Resources/ResultImages"
+    dataroot = dsPath
+    pathNetG = directory + "/gen.pth"
+    pathNetD = directory + "/dis.pth"
+    outputPath = "ResultImages"
 
     # Number of workers for dataloader
     workers = 2

@@ -1,4 +1,5 @@
 import inspect
+import json
 import os
 import sys
 import tkinter as tk
@@ -6,21 +7,19 @@ import tkinter.ttk as ttk
 from tkinter.filedialog import askdirectory
 
 
-import train
+# import train
 
 def get_datasets():
     out = ()
-    if not os.path.exists("Resources/datasets.txt"):
-        with open("Resources/datasets.txt", "w") as f:
-            f.write("")
-    datasets_file = open("Resources/datasets.txt", 'r')
     global datasets
-    datasets = datasets_file.readlines()
-    datasets_file.close()
-    for ds in datasets:
-        if len(ds) > 0:
-            ds_name = ds.split()[0]
-            out = out.__add__((str(ds_name),))
+
+    for _, dirs, _ in os.walk("Resources"):
+        for dr in dirs:
+            out = out.__add__((str(dr),))
+            with open("Resources/" + dr + "/vars.json") as f:
+                data_json = json.load(f)
+            datasets.append(dr + " " + data_json['directory'])
+
     return out
 
 
@@ -93,7 +92,7 @@ class DatasetSelection(tk.Frame):
                 global datasetName
                 datasetName = datasets_selector.get()
                 for i in datasets:
-                    if i.split()[0] == datasetName:
+                    if len(i) > 3 and i.split()[0] == datasetName:
                         global datasetDirectory
                         datasetDirectory = i.split()[1]
                 controller.show_frame("ChooseEpochs")
@@ -128,15 +127,25 @@ class DatasetCreation(tk.Frame):
                 print(self.pathToNewSet, name)
                 global datasetName
                 global datasetDirectory
-                datasetName = name
+                datasetName = "".join(name.split())
                 datasetDirectory = self.pathToNewSet
-                datasets_file = open("Resources/datasets.txt", 'a')
-                datasets_file.write(datasetName + " " + datasetDirectory + '\n')
-                datasets_file.close()
+                vars_directory = "Resources/" + datasetName
+
+                if not os.path.exists(vars_directory):
+                    os.makedirs(vars_directory)
+
+                if not os.path.exists(vars_directory + "/vars.json"):
+                    with open(vars_directory + "/vars.json", "w") as f:
+                        f.write('{"directory": "' + datasetDirectory + '", "image_iterator": 0, "epochs": 0}')
+
                 controller.show_frame("ChooseEpochs")
 
+        def back():
+            controller.show_frame("DatasetSelection")
+
         tk.Button(self, text="Choose the photos folder", command=open_filedialog).pack()
-        tk.Button(self, text="Save and start to train", command=lambda: create_start_train(name_label.get())).pack()
+        tk.Button(self, text="Save", command=lambda: create_start_train(name_label.get())).pack()
+        tk.Button(self, text="Back", command=back).pack()
 
 
 class ChooseEpochs(tk.Frame):
@@ -152,21 +161,15 @@ class ChooseEpochs(tk.Frame):
                 global epochCounter
                 epochCounter = int(epochCount)
                 inp.delete(0, 'end')
-                controller.show_frame("Training")
+                # train.main(epochCounter, jsonDirectory, datasetDirectory)
+                print(epochCounter, datasetDirectory, datasetName)
+                controller.show_frame("TrainingEnd")
+
+        def back():
+            controller.show_frame("DatasetSelection")
 
         tk.Button(self, text="Generate", command=lambda: set_epochs(inp.get())).pack()
-
-
-class Training(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-
-        def start():
-            train.main(epochCounter, datasetDirectory)
-            controller.show_frame("TrainingEnd")
-
-        tk.Button(self, text="Start training", command=start).pack()
+        tk.Button(self, text="Back", command=back).pack()
 
 
 class TrainingEnd(tk.Frame):

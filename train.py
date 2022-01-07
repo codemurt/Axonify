@@ -96,7 +96,7 @@ def main(epoch, directory, dsPath):
                 resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
                 improve_quality(model, outputPathOneImage)
                 dataJson['image_iterator'] += 1
-        with open("vars.json", "w") as f:
+        with open(directory + '/vars.json', "w") as f:
             json.dump(dataJson, f)
 
         print("Images have been generated!")

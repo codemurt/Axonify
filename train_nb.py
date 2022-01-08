@@ -104,7 +104,7 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
     plt.title("Training Images")
     plt.imshow(
         np.transpose(vutils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(), (1, 2, 0)))
-    #plt.show()
+    plt.show()
 
     def weights_init(m):
         classname = m.__class__.__name__

@@ -41,7 +41,7 @@ opt = parser.parse_args()
 print(opt)
 path_to_dataset = opt.outf + '/' + opt.datasetName
 
-if opt.mode == 1 or opt.mode == 2:
+if int(opt.mode) == 1 or int(opt.mode) == 2:
     with open(path_to_dataset + "/vars.json") as f:
         dataJson = json.load(f)
 
@@ -104,6 +104,7 @@ if opt.mode == 1 or opt.mode == 2:
     plt.title("Training Images")
     plt.imshow(
         np.transpose(vutils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(), (1, 2, 0)))
+    plt.show()
 
     def weights_init(m):
         classname = m.__class__.__name__

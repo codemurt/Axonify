@@ -14,6 +14,8 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
 
 from RealESRGAN.realesrgan import RealESRGAN
 
@@ -96,6 +98,12 @@ if opt.mode == 1 or opt.mode == 2:
     # Decide which device we want to run on
     device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
 
+    real_batch = next(iter(dataloader))
+    plt.figure(figsize=(8, 8))
+    plt.axis("off")
+    plt.title("Training Images")
+    plt.imshow(
+        np.transpose(vutils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(), (1, 2, 0)))
 
     def weights_init(m):
         classname = m.__class__.__name__

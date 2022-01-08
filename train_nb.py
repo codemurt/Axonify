@@ -41,6 +41,11 @@ opt = parser.parse_args()
 print(opt)
 path_to_dataset = opt.outf + '/' + opt.datasetName
 
+manualSeed = int(opt.manualSeed)
+print("Random Seed: ", manualSeed)
+random.seed(manualSeed)
+torch.manual_seed(manualSeed)
+
 if int(opt.mode) == 1 or int(opt.mode) == 2:
     with open(path_to_dataset + "/vars.json") as f:
         dataJson = json.load(f)
@@ -98,14 +103,6 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
     # Decide which device we want to run on
     device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
 
-    real_batch = next(iter(dataloader))
-    plt.figure(figsize=(8, 8))
-    plt.axis("off")
-    plt.title("Training Images")
-    plt.imshow(
-        np.transpose(vutils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(), (1, 2, 0)))
-    plt.show()
-
     def weights_init(m):
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
@@ -116,7 +113,6 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
 
 
     # Generator Code
-
     class Generator(nn.Module):
         def __init__(self, ngpu):
             super(Generator, self).__init__()
@@ -211,11 +207,6 @@ if opt.mode == 0:
     with open(path_to_dataset + "/vars.json", "w") as f:
         f.write('{"image_iterator": 0, "epochs": 0}')
 elif opt.mode == 1:
-    manualSeed = int(opt.manualSeed)
-    print("Random Seed: ", manualSeed)
-    random.seed(manualSeed)
-    torch.manual_seed(manualSeed)
-
     # Number of training epochs
     num_epochs = int(opt.epochs)
 
@@ -223,20 +214,17 @@ elif opt.mode == 1:
     netG.apply(weights_init)
     if dataJson['epochs'] != 0:
         netG.load_state_dict(torch.load(pathNetG))
-        optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
         print("loaded netG and optimizerG")
     netD = Discriminator(ngpu).to(device)
     netD.apply(weights_init)
     if dataJson['epochs'] != 0:
         netD.load_state_dict(torch.load(pathNetD))
-        optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
         print("loaded netD and optimizerD")
 
+    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
+    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
 
     print("Start training")
-    netG.train()
-    netD.train()
-
     for epoch in range(num_epochs):
         for i, data in enumerate(dataloader, 0):
             ############################
@@ -286,11 +274,12 @@ elif opt.mode == 1:
                 vutils.save_image(fake.detach(),
                                   '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))),
                                   normalize=True)
+                vutils.save_image(real_cpu,
+                                  '%s/real_samples.png' % outputPath,
+                                  normalize=True)
 
         dataJson['epochs'] += 1
         # do checkpointing
-    netG.eval()
-    netD.eval()
     torch.save(netG.state_dict(), pathNetG)
     # torch.save(netG.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_gen.pth")
     torch.save(netD.state_dict(), pathNetD)
@@ -307,10 +296,9 @@ else:
         netG.apply(weights_init)
         if dataJson['epochs'] != 0:
             netG.load_state_dict(torch.load(pathNetG))
-            optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
+            #optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
             print("loaded netG and optimizerG")
 
-        netG.eval()
         with torch.no_grad():
             for i in range(count_of_images):
                 z = torch.randn(1, 100, 1, 1, device=device)

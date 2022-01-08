@@ -1,5 +1,6 @@
 # import argparse
 import json
+import os
 import random
 from datetime import datetime
 
@@ -297,8 +298,12 @@ def main(epoch, directory, dsPath):
     # torch.save(netG.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_gen.pth")
     torch.save(netD.state_dict(), pathNetD)
     # torch.save(netD.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_dis.pth")
-    with open(directory + "/vars.json", "w") as f:
+    with open("vars.json", "w") as f:
         json.dump(dataJson, f)
     print("Finish training")
-    # generate(1)
-   
+    generate(1)
+    input()
+
+
+if __name__ == '__main__':
+    main()

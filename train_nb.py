@@ -52,35 +52,35 @@ if opt.mode == 1 or opt.mode == 2:
     outputPath = path_to_dataset + "/ResultImages"
 
     # Number of workers for dataloader
-    workers = opt.workers
+    workers = int(opt.workers)
 
     # Batch size during training
-    batch_size = opt.batchSize
+    batch_size = int(opt.batchSize)
 
     # Spatial size of training images. All images will be resized to this
     #   size using a transformer.
-    image_size = opt.imageSize
+    image_size = int(opt.imageSize)
 
     # Number of channels in the training images. For color images this is 3
     nc = 3
 
     # Size of z latent vector (i.e. size of generator input)
-    nz = opt.nz
+    nz = int(opt.nz)
 
     # Size of feature maps in generator
-    ngf = opt.ngf
+    ngf = int(opt.ngf)
 
     # Size of feature maps in discriminator
-    ndf = opt.ndf
+    ndf = int(opt.ndf)
 
     # Learning rate for optimizers
-    lr = opt.lr
+    lr = float(opt.lr)
 
     # Beta1 hyperparam for Adam optimizers
-    beta1 = opt.beta1
+    beta1 = float(opt.beta1)
 
     # Number of GPUs available. Use 0 for CPU mode.
-    ngpu = opt.ngpu
+    ngpu = int(opt.ngpu)
 
     dataset = dset.ImageFolder(root=dataroot,
                                transform=transforms.Compose([
@@ -143,14 +143,6 @@ if opt.mode == 1 or opt.mode == 2:
             return output
 
 
-    netG = Generator(ngpu).to(device)
-    netG.apply(weights_init)
-    if dataJson['epochs'] != 0:
-        netG.load_state_dict(torch.load(pathNetG))
-        print("loaded netG")
-    print(netG)
-
-
     class Discriminator(nn.Module):
         def __init__(self, ngpu):
             super(Discriminator, self).__init__()
@@ -185,22 +177,11 @@ if opt.mode == 1 or opt.mode == 2:
             return output.view(-1, 1).squeeze(1)
 
 
-    netD = Discriminator(ngpu).to(device)
-    netD.apply(weights_init)
-    if dataJson['epochs'] != 0:
-        netD.load_state_dict(torch.load(pathNetD))
-        print("loaded netD")
-    print(netD)
-
     criterion = nn.BCELoss()
-    
+
     fixed_noise = torch.randn(batch_size, nz, 1, 1, device=device)
     real_label = 1
     fake_label = 0
-
-    # setup optimizer
-    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
-    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
 
 if opt.mode == 0:
     try:
@@ -221,13 +202,13 @@ if opt.mode == 0:
     with open(path_to_dataset + "/vars.json", "w") as f:
         f.write('{"image_iterator": 0, "epochs": 0}')
 elif opt.mode == 1:
-    manualSeed = opt.manualSeed
+    manualSeed = int(opt.manualSeed)
     print("Random Seed: ", manualSeed)
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
 
     # Number of training epochs
-    num_epochs = opt.epochs
+    num_epochs = int(opt.epochs)
 
     netG = Generator(ngpu).to(device)
     netG.apply(weights_init)
@@ -241,6 +222,7 @@ elif opt.mode == 1:
         netD.load_state_dict(torch.load(pathNetD))
         optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
         print("loaded netD and optimizerD")
+
 
     print("Start training")
     netG.train()
@@ -293,7 +275,7 @@ elif opt.mode == 1:
             if i % 30 == 0:
                 fake = netG(fixed_noise)
                 vutils.save_image(fake.detach(),
-                                  '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))),
+                                  '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))),
                                   normalize=True)
 
         dataJson['epochs'] += 1
@@ -311,6 +293,13 @@ else:
     def generate(count_of_images=10):
         model = RealESRGAN(device, scale=4)
         model.load_weights('RealESRGAN/weights/RealESRGAN_x4.pth')
+
+        netG = Generator(ngpu).to(device)
+        netG.apply(weights_init)
+        if dataJson['epochs'] != 0:
+            netG.load_state_dict(torch.load(pathNetG))
+            optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
+            print("loaded netG and optimizerG")
 
         netG.eval()
         with torch.no_grad():
@@ -345,4 +334,4 @@ else:
         resized_image.show()
         resized_image.save(output_image_path)
 
-    generate(opt.imageCount)
+    generate(int(opt.imageCount))

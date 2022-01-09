@@ -93,7 +93,11 @@ def main(epoch, directory, dsPath):
                 outputPathOneImage = outputPath + f"/generated_{dataJson['image_iterator']}" + ".png"
                 vutils.save_image(fake, outputPathOneImage, normalize=True)
                 resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
-                improve_quality(model, outputPathOneImage)
+                try:
+                    improve_quality(model, outputPathOneImage)
+                except RuntimeError:
+                    print("Cannot improve quality")
+                    
                 dataJson['image_iterator'] += 1
         with open(directory + '/vars.json', "w") as f:
             json.dump(dataJson, f)

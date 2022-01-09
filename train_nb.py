@@ -19,7 +19,7 @@ import cv2
 from RealESRGAN.realesrgan import RealESRGAN
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataroot', required=True, help='path to dataset')
+parser.add_argument('--dataroot', help='path to dataset')
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
 parser.add_argument('--batchSize', type=int, default=128, help='input batch size')
 parser.add_argument('--imageSize', type=int, default=64, help='the height / width of the input image to network')
@@ -52,7 +52,7 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
     cudnn.benchmark = True
 
     # Root directory for dataset
-    dataroot = opt.dataroot
+    dataroot = dataJson["directory"]
     pathNetG = path_to_dataset + "/gen.pth"
     pathNetD = path_to_dataset + "/dis.pth"
     outputPath = path_to_dataset + "/ResultImages"
@@ -204,7 +204,7 @@ if opt.mode == 0:
         pass
 
     with open(path_to_dataset + "/vars.json", "w") as f:
-        f.write('{"image_iterator": 0, "epochs": 0}')
+        f.write('{"directory": "' + opt.dataroot + '", "image_iterator": 0, "epochs": 0}')
 elif opt.mode == 1:
     # Number of training epochs
     num_epochs = int(opt.epochs)

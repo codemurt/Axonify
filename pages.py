@@ -13,10 +13,10 @@ def get_datasets():
     out = ()
     global datasets
 
-    for _, dirs, _ in os.walk("Resources"):
+    for _, dirs, _ in os.walk("Datasets"):
         for dr in dirs:
             out = out.__add__((str(dr),))
-            with open("Resources/" + dr + "/vars.json") as f:
+            with open("Datasets/" + dr + "/vars.json") as f:
                 data_json = json.load(f)
             datasets.append(dr + " " + data_json['directory'])
 
@@ -129,7 +129,7 @@ class DatasetCreation(tk.Frame):
                 global datasetDirectory
                 datasetName = "".join(name.split())
                 datasetDirectory = self.pathToNewSet
-                vars_directory = "Resources/" + datasetName
+                vars_directory = "Datasets/" + datasetName
 
                 if not os.path.exists(vars_directory):
                     os.makedirs(vars_directory)

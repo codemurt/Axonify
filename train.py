@@ -16,12 +16,22 @@ from PIL import Image
 
 from RealESRGAN.realesrgan import RealESRGAN
 
+workers = 2
+original_batch_size = 128
+image_size = 64
+nc = 3  # Number of channels in the training images. For color images this is 3
+nz = 100  # Size of z latent vector (i.e. size of generator input)
+ngf = 64  # Size of feature maps in generator
+ndf = 64  # Size of feature maps in discriminator
+lr = 0.002  # Learning rate for optimizers
+beta1 = 0.5  # Beta1 hyper-param for Adam optimizers
+ngpu = 1  # Number of GPUs available. Use 0 for CPU mode.
+outputPath = "ResultImages"
 
-def main(epoch, directory, dsPath):
-    # Set random seed for reproducibility manualSeed = 999
-    # manualSeed = random.randint(1, 10000) # use if you want new results
-    manualSeed = 999
-    print("Random Seed: ", manualSeed)
+
+def train(epoch, directory, dsPath, seed):
+    manualSeed = seed
+    print("Seed: ", manualSeed)
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
 
@@ -34,38 +44,6 @@ def main(epoch, directory, dsPath):
     dataroot = dsPath
     pathNetG = directory + "/gen.pth"
     pathNetD = directory + "/dis.pth"
-    outputPath = "ResultImages"
-
-    # Number of workers for dataloader
-    workers = 2
-
-    # Batch size during training
-    batch_size = 128
-
-    # Spatial size of training images. All images will be resized to this
-    #   size using a transformer.
-    image_size = 64
-
-    # Number of channels in the training images. For color images this is 3
-    nc = 3
-
-    # Size of z latent vector (i.e. size of generator input)
-    nz = 100
-
-    # Size of feature maps in generator
-    ngf = 64
-
-    # Size of feature maps in discriminator
-    ndf = 64
-
-    # Learning rate for optimizers
-    lr = 0.002
-
-    # Beta1 hyperparam for Adam optimizers
-    beta1 = 0.5
-
-    # Number of GPUs available. Use 0 for CPU mode.
-    ngpu = 1
 
     dataset = dset.ImageFolder(root=dataroot,
                                transform=transforms.Compose([
@@ -75,96 +53,11 @@ def main(epoch, directory, dsPath):
                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                ]))
     # Create the dataloader
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=original_batch_size,
                                              shuffle=True, num_workers=workers)
 
     # Decide which device we want to run on
     device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
-
-    def generate(count_of_images=10):
-        model = RealESRGAN(device, scale=4)
-        model.load_weights('RealESRGAN/weights/RealESRGAN_x4.pth')
-
-        netG.eval()
-        with torch.no_grad():
-            for i in range(count_of_images):
-                z = torch.randn(1, 100, 1, 1, device=device)
-                fake = netG(z).detach().cpu()
-                outputPathOneImage = outputPath + f"/generated_{dataJson['image_iterator']}" + ".png"
-                vutils.save_image(fake, outputPathOneImage, normalize=True)
-                resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
-                try:
-                    improve_quality(model, outputPathOneImage)
-                except RuntimeError:
-                    print("Cannot improve quality")
-                    
-                dataJson['image_iterator'] += 1
-        with open(directory + '/vars.json', "w") as f:
-            json.dump(dataJson, f)
-
-        print("Images have been generated!")
-
-    def improve_quality(model, path):
-        image = Image.open(path).convert('RGB')
-        sr_image = model.predict(image)
-        sr_image.save(path)
-
-    def resize_image(input_image_path, output_image_path, size):
-        original_image = Image.open(input_image_path)
-        width, height = original_image.size
-        print('The original image size is {wide} wide x {height} '
-              'high'.format(wide=width, height=height))
-
-        resized_image = original_image.resize(size)
-        width, height = resized_image.size
-        print('The resized image size is {wide} wide x {height} '
-              'high'.format(wide=width, height=height))
-        resized_image.show()
-        resized_image.save(output_image_path)
-
-    def weights_init(m):
-        classname = m.__class__.__name__
-        if classname.find('Conv') != -1:
-            torch.nn.init.normal_(m.weight, 0.0, 0.02)
-        elif classname.find('BatchNorm') != -1:
-            torch.nn.init.normal_(m.weight, 1.0, 0.02)
-            torch.nn.init.zeros_(m.bias)
-
-    # Generator Code
-
-    class Generator(nn.Module):
-        def __init__(self, ngpu):
-            super(Generator, self).__init__()
-            self.ngpu = ngpu
-            self.main = nn.Sequential(
-                # input is Z, going into a convolution
-                nn.ConvTranspose2d(nz, ngf * 8, 4, 1, 0, bias=False),
-                nn.BatchNorm2d(ngf * 8),
-                nn.ReLU(True),
-                # state size. (ngf*8) x 4 x 4
-                nn.ConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
-                nn.BatchNorm2d(ngf * 4),
-                nn.ReLU(True),
-                # state size. (ngf*4) x 8 x 8
-                nn.ConvTranspose2d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
-                nn.BatchNorm2d(ngf * 2),
-                nn.ReLU(True),
-                # state size. (ngf*2) x 16 x 16
-                nn.ConvTranspose2d(ngf * 2, ngf, 4, 2, 1, bias=False),
-                nn.BatchNorm2d(ngf),
-                nn.ReLU(True),
-                # state size. (ngf) x 32 x 32
-                nn.ConvTranspose2d(ngf, nc, 4, 2, 1, bias=False),
-                nn.Tanh()
-                # state size. (nc) x 64 x 64
-            )
-
-        def forward(self, input):
-            if input.is_cuda and self.ngpu > 1:
-                output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
-            else:
-                output = self.main(input)
-            return output
 
     netG = Generator(ngpu).to(device)
     netG.apply(weights_init)
@@ -215,7 +108,7 @@ def main(epoch, directory, dsPath):
 
     criterion = nn.BCELoss()
 
-    fixed_noise = torch.randn(batch_size, nz, 1, 1, device=device)
+    fixed_noise = torch.randn(original_batch_size, nz, 1, 1, device=device)
     real_label = 1
     fake_label = 0
 
@@ -298,10 +191,109 @@ def main(epoch, directory, dsPath):
     netG.eval()
     netD.eval()
     torch.save(netG.state_dict(), pathNetG)
-    # torch.save(netG.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_gen.pth")
     torch.save(netD.state_dict(), pathNetD)
-    # torch.save(netD.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_dis.pth")
     with open(directory + "/vars.json", "w") as f:
         json.dump(dataJson, f)
-    print("Finish training")
-    # generate(1)
+    print("Training finished")
+
+
+def generate(datasetName, count_of_images=10):
+    directory = f"Datasets/{datasetName}"
+
+    with open(directory + "/vars.json") as f:
+        dataJson = json.load(f)
+
+    pathNetG = directory + "/gen.pth"
+    device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
+
+    netG = Generator(ngpu).to(device)
+    netG.apply(weights_init)
+    if dataJson['epochs'] != 0:
+        netG.load_state_dict(torch.load(pathNetG))
+        print("loaded netG")
+    print(netG)
+
+    model = RealESRGAN(device, scale=4)
+    model.load_weights('RealESRGAN/weights/RealESRGAN_x4.pth')
+
+    def improve_quality(in_model, path):
+        image = Image.open(path).convert('RGB')
+        sr_image = in_model.predict(image)
+        sr_image.save(path)
+
+    netG.eval()
+    with torch.no_grad():
+        for i in range(count_of_images):
+            z = torch.randn(1, 100, 1, 1, device=device)
+            fake = netG(z).detach().cpu()
+            outputPathOneImage = outputPath + f"{datasetName}/generated_{dataJson['image_iterator']}" + ".png"
+            vutils.save_image(fake, outputPathOneImage, normalize=True)
+            resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
+            try:
+                improve_quality(model, outputPathOneImage)
+            except RuntimeError:
+                print("Cannot improve quality")
+
+            dataJson['image_iterator'] += 1
+    with open(directory + '/vars.json', "w") as f:
+        json.dump(dataJson, f)
+
+    print("Images have been generated!")
+
+
+def resize_image(input_image_path, output_image_path, size):
+    original_image = Image.open(input_image_path)
+    width, height = original_image.size
+    print('The original image size is {wide} wide x {height} '
+          'high'.format(wide=width, height=height))
+
+    resized_image = original_image.resize(size)
+    width, height = resized_image.size
+    print('The resized image size is {wide} wide x {height} '
+          'high'.format(wide=width, height=height))
+    resized_image.show()
+    resized_image.save(output_image_path)
+
+
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        torch.nn.init.normal_(m.weight, 0.0, 0.02)
+    elif classname.find('BatchNorm') != -1:
+        torch.nn.init.normal_(m.weight, 1.0, 0.02)
+        torch.nn.init.zeros_(m.bias)
+
+
+class Generator(nn.Module):
+    def __init__(self, ngpu):
+        super(Generator, self).__init__()
+        self.ngpu = ngpu
+        self.main = nn.Sequential(
+            # input is Z, going into a convolution
+            nn.ConvTranspose2d(nz, ngf * 8, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(ngf * 8),
+            nn.ReLU(True),
+            # state size. (ngf*8) x 4 x 4
+            nn.ConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf * 4),
+            nn.ReLU(True),
+            # state size. (ngf*4) x 8 x 8
+            nn.ConvTranspose2d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf * 2),
+            nn.ReLU(True),
+            # state size. (ngf*2) x 16 x 16
+            nn.ConvTranspose2d(ngf * 2, ngf, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf),
+            nn.ReLU(True),
+            # state size. (ngf) x 32 x 32
+            nn.ConvTranspose2d(ngf, nc, 4, 2, 1, bias=False),
+            nn.Tanh()
+            # state size. (nc) x 64 x 64
+        )
+
+    def forward(self, input):
+        if input.is_cuda and self.ngpu > 1:
+            output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+        else:
+            output = self.main(input)
+        return output

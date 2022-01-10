@@ -1,5 +1,6 @@
 # import argparse
 import json
+import os
 import random
 from datetime import datetime
 
@@ -29,8 +30,8 @@ ngpu = 1  # Number of GPUs available. Use 0 for CPU mode.
 outputPath = "ResultImages"
 
 
-def train(epoch, directory, dsPath, seed):
-    manualSeed = seed
+def train(epoch, directory, dsPath):
+    manualSeed = 999
     print("Seed: ", manualSeed)
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
@@ -197,9 +198,9 @@ def train(epoch, directory, dsPath, seed):
     print("Training finished")
 
 
-def generate(datasetName, count_of_images=10):
+def generate(datasetName, seed, count_of_images=10):
     directory = f"Datasets/{datasetName}"
-
+    torch.manual_seed(seed)
     with open(directory + "/vars.json") as f:
         dataJson = json.load(f)
 
@@ -223,10 +224,13 @@ def generate(datasetName, count_of_images=10):
 
     netG.eval()
     with torch.no_grad():
-        for i in range(count_of_images):
+        for i in range(int(count_of_images)):
             z = torch.randn(1, 100, 1, 1, device=device)
             fake = netG(z).detach().cpu()
-            outputPathOneImage = outputPath + f"{datasetName}/generated_{dataJson['image_iterator']}" + ".png"
+            dataset_output = outputPath + "/" + datasetName
+            if not os.path.exists(dataset_output):
+                os.makedirs(dataset_output)
+            outputPathOneImage = dataset_output + f"/generated_{dataJson['image_iterator']}" + ".png"
             vutils.save_image(fake, outputPathOneImage, normalize=True)
             resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
             try:

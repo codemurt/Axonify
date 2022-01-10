@@ -50,15 +50,19 @@ class GeneratorPage(tk.Frame):
         epoch_count = tk.Entry(self)
         epoch_count.pack()
 
-        def generate_pics(imgCount):
-            if imgCount.isdigit() and not dataset_selector.current() == -1:
+        seed = tk.Entry(self)
+        seed.pack()
+
+        def generate_pics(imgCount, seed):
+            if imgCount.isdigit() and not dataset_selector.current() == -1 and seed.isdigit():
                 global datasetName
                 datasetName = dataset_selector.get()
                 global datasetDirectory
                 for i in datasets:
                     if len(i) > 3 and i.split()[0] == datasetName:
                         datasetDirectory = i.split()[1]
-                train.generate(datasetName, imgCount)
+                        break
+                train.generate(datasetName, int(seed), imgCount)
                 epoch_count.delete(0, 'end')
                 controller.show_frame("GenerationEnd")
 
@@ -66,7 +70,7 @@ class GeneratorPage(tk.Frame):
             epoch_count.delete(0, 'end')
             controller.show_frame("StartPage")
 
-        tk.Button(self, text="Generate", command=lambda: generate_pics(epoch_count.get())).pack()
+        tk.Button(self, text="Generate", command=lambda: generate_pics(epoch_count.get(), seed.get())).pack()
         tk.Button(self, text="Back", command=show_start).pack()
 
 
@@ -158,24 +162,19 @@ class ChooseEpochs(tk.Frame):
         tk.Label(self, text='Print the number of epochs:').pack()
         inp1 = tk.Entry(self)
         inp1.pack()
-        tk.Label(self, text='Print seed:').pack()
-        inp2 = tk.Entry(self)
-        inp2.pack()
 
-        def set_values(epochCount, seed):
-            if epochCount.isdigit() and seed.isdigit():
+        def set_values(epochCount):
+            if epochCount.isdigit():
                 epochCounter = int(epochCount)
-                seed = int(seed)
                 inp1.delete(0, 'end')
-                inp2.delete(0, 'end')
-                train.train(epochCounter, "Resources/" + datasetName, datasetDirectory, seed)
+                train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory)
                 print(epochCounter, datasetDirectory, datasetName)
                 controller.show_frame("TrainingEnd")
 
         def back():
             controller.show_frame("DatasetSelection")
 
-        tk.Button(self, text="Generate", command=lambda: set_values(inp1.get(), inp2.get())).pack()
+        tk.Button(self, text="Generate", command=lambda: set_values(inp1.get())).pack()
         tk.Button(self, text="Back", command=back).pack()
 
 

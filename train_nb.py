@@ -187,7 +187,7 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
     real_label = 1
     fake_label = 0
 
-if opt.mode == 0:
+if int(opt.mode) == 0:
     try:
         os.makedirs(opt.outf)
     except OSError:
@@ -205,7 +205,7 @@ if opt.mode == 0:
 
     with open(path_to_dataset + "/vars.json", "w") as f:
         f.write('{"directory": "' + opt.dataroot + '", "image_iterator": 0, "epochs": 0}')
-elif opt.mode == 1:
+elif int(opt.mode) == 1:
     # Number of training epochs
     num_epochs = int(opt.epochs)
 
@@ -287,6 +287,11 @@ elif opt.mode == 1:
         json.dump(dataJson, f)
     print("Finish training")
 elif int(opt.mode) == 2:
+    seed = random.randint(1, 10000)
+    random.seed(seed)
+    torch.manual_seed(seed)
+
+
     def generate(count_of_images=10):
         model = RealESRGAN(device, scale=4)
         model.load_weights('RealESRGAN/weights/RealESRGAN_x4.pth')

@@ -7,7 +7,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.filedialog import askdirectory
 
-# import train
+import train
 
 
 def get_datasets():
@@ -70,7 +70,7 @@ class GeneratorPage(tk.Frame):
                     if len(i) > 3 and i.split()[0] == datasetName:
                         datasetDirectory = i.split()[1]
                         break
-                # train.generate(datasetName, int(in_seed), imgCount)
+                train.generate(datasetName, int(in_seed), imgCount)
                 print(datasetName, in_seed, imgCount)
                 epoch_count.delete(0, 'end')
                 seed.delete(0, 'end')
@@ -180,7 +180,7 @@ class ChooseEpochs(tk.Frame):
             if epochCount.isdigit():
                 epochCounter = int(epochCount)
                 inp1.delete(0, 'end')
-                # train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory)
+                train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory)
                 print(epochCounter, datasetDirectory, datasetName)
                 controller.show_frame("TrainingEnd")
 

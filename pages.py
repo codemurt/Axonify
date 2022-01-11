@@ -1,12 +1,13 @@
 import inspect
 import json
 import os
+import random
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.filedialog import askdirectory
 
-import train
+# import train
 
 
 def get_datasets():
@@ -35,26 +36,33 @@ class StartPage(tk.Frame):
         label = tk.Label(self, text="DCGAN", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
 
-        tk.Button(self, text="Generate", command=lambda: controller.show_frame("GeneratorPage")).pack()
-        tk.Button(self, text="Train", command=lambda: controller.show_frame("DatasetSelection")).pack()
+        tk.Button(self, text="Generate", width=10, command=lambda: controller.show_frame("GeneratorPage"))\
+            .pack(side="top", pady=10)
+        tk.Button(self, text="Training", width=10, command=lambda: controller.show_frame("DatasetSelection"))\
+            .pack(side="top")
 
 
 class GeneratorPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="Select dataset and number of images to generate:", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-        dataset_selector = ttk.Combobox(self, values=get_datasets(), justify=tk.CENTER)
-        dataset_selector.pack()
-        epoch_count = tk.Entry(self)
-        epoch_count.pack()
+        label1 = tk.Label(self, text="Select dataset:", font=controller.title_font)
+        label1.pack(side="top", pady=5)
+        dataset_selector = ttk.Combobox(self, values=get_datasets(), justify=tk.CENTER, width=15)
+        dataset_selector.pack(side='top')
+        label2 = tk.Label(self, text="Print number of images to generate:", font=controller.title_font)
+        label2.pack(side="top", pady=10)
+        epoch_count = tk.Entry(self, width=8, justify='center')
+        epoch_count.pack(side='top')
+        label3 = tk.Label(self, text="Print seed or leave blank to random:", font=controller.title_font)
+        label3.pack(side="top", pady=10)
+        seed = tk.Entry(self, width=8, justify='center')
+        seed.pack(side="top")
 
-        seed = tk.Entry(self)
-        seed.pack()
-
-        def generate_pics(imgCount, seed):
-            if imgCount.isdigit() and not dataset_selector.current() == -1 and seed.isdigit():
+        def generate_pics(imgCount, in_seed):
+            if not in_seed.isdigit():
+                in_seed = random.randint(0, 9999)
+            if imgCount.isdigit() and not dataset_selector.current() == -1:
                 global datasetName
                 datasetName = dataset_selector.get()
                 global datasetDirectory
@@ -62,23 +70,27 @@ class GeneratorPage(tk.Frame):
                     if len(i) > 3 and i.split()[0] == datasetName:
                         datasetDirectory = i.split()[1]
                         break
-                train.generate(datasetName, int(seed), imgCount)
+                # train.generate(datasetName, int(in_seed), imgCount)
+                print(datasetName, in_seed, imgCount)
                 epoch_count.delete(0, 'end')
+                seed.delete(0, 'end')
                 controller.show_frame("GenerationEnd")
 
         def show_start():
             epoch_count.delete(0, 'end')
             controller.show_frame("StartPage")
 
-        tk.Button(self, text="Generate", command=lambda: generate_pics(epoch_count.get(), seed.get())).pack()
-        tk.Button(self, text="Back", command=show_start).pack()
+        tk.Button(self, text="Generate", command=lambda: generate_pics(epoch_count.get(), seed.get()), width=10)\
+            .pack(side="top", pady=5)
+        tk.Button(self, text="Back", command=show_start, width=10).pack(side="top", pady=5)
 
 
 class GenerationEnd(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        tk.Label(self, text='Ready! Your pictures are saved in the "Results" folder.').pack()
+        tk.Label(self, text='Ready! Your pictures are saved in the "ResultImages" folder.',
+                 font=controller.title_font).pack()
         tk.Button(self, text='Return to menu', command=lambda: controller.show_frame("StartPage")).pack()
 
 
@@ -86,11 +98,11 @@ class DatasetSelection(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        tk.Label(self, text='Select dataset:').pack()
+        tk.Label(self, text='Select dataset:', font=controller.title_font).pack(side='top', pady=5)
 
-        datasets_selector = ttk.Combobox(self, values=get_datasets_with_new(), justify=tk.CENTER)
+        datasets_selector = ttk.Combobox(self, values=get_datasets_with_new(), justify=tk.CENTER, width=20)
         datasets_selector.current(0)
-        datasets_selector.pack()
+        datasets_selector.pack(side='top', pady=10)
 
         def next_frame():
             if datasets_selector.current() == len(datasets_selector["values"]) - 1:
@@ -104,13 +116,13 @@ class DatasetSelection(tk.Frame):
                         datasetDirectory = i.split()[1]
                 controller.show_frame("ChooseEpochs")
 
-        tk.Button(self, text='Next', command=next_frame).pack()
+        tk.Button(self, text='Next', command=next_frame, width=15).pack(side='top')
 
         def show_start():
             datasets_selector.current(0)
             controller.show_frame("StartPage")
 
-        tk.Button(self, text="Back", command=show_start).pack()
+        tk.Button(self, text="Back", command=show_start, width=15).pack(side='top', pady=10)
 
 
 class DatasetCreation(tk.Frame):
@@ -118,15 +130,15 @@ class DatasetCreation(tk.Frame):
         self.pathToNewSet = ""
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        tk.Label(self, text='Name the dataset').pack()
-        name_label = tk.Entry(self)
-        name_label.pack()
+        tk.Label(self, text='Name the dataset', font=controller.title_font).pack(side='top', pady=10)
+        name_label = tk.Entry(self, width=24, justify='center')
+        name_label.pack(side='top', pady=10)
         dir_label = tk.Label(self)
 
         def open_filedialog():
             self.pathToNewSet = askdirectory()
             dir_label['text'] = "Current path: " + self.pathToNewSet
-            dir_label.pack()
+            dir_label.pack(side='top', pady=5)
 
         def create_start_train(name):
             if self.pathToNewSet != "" and name != "":
@@ -150,51 +162,53 @@ class DatasetCreation(tk.Frame):
         def back():
             controller.show_frame("DatasetSelection")
 
-        tk.Button(self, text="Choose the photos folder", command=open_filedialog).pack()
-        tk.Button(self, text="Save", command=lambda: create_start_train(name_label.get())).pack()
-        tk.Button(self, text="Back", command=back).pack()
+        tk.Button(self, text="Choose the photos folder", command=open_filedialog, width=20).pack(side='top')
+        tk.Button(self, text="Save", command=lambda: create_start_train(name_label.get()), width=10)\
+            .pack(side='top', pady=10)
+        tk.Button(self, text="Back", command=back, width=10).pack(side='top')
 
 
 class ChooseEpochs(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        tk.Label(self, text='Print the number of epochs:').pack()
-        inp1 = tk.Entry(self)
-        inp1.pack()
+        tk.Label(self, text='Print the number of epochs:', font=controller.title_font).pack(side='top', pady=10)
+        inp1 = tk.Entry(self, width=10, justify='center')
+        inp1.pack(side='top', pady=10)
 
         def set_values(epochCount):
             if epochCount.isdigit():
                 epochCounter = int(epochCount)
                 inp1.delete(0, 'end')
-                train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory)
+                # train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory)
                 print(epochCounter, datasetDirectory, datasetName)
                 controller.show_frame("TrainingEnd")
 
         def back():
             controller.show_frame("DatasetSelection")
 
-        tk.Button(self, text="Generate", command=lambda: set_values(inp1.get())).pack()
-        tk.Button(self, text="Back", command=back).pack()
+        tk.Button(self, text="Train", command=lambda: set_values(inp1.get()), width=10)\
+            .pack(side='top')
+        tk.Button(self, text="Back", command=back, width=10).pack(side='top', pady=10)
 
 
 class TrainingEnd(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        tk.Button(self, text="Return to menu", command=lambda: controller.show_frame("StartPage")).pack()
-        tk.Button(self, text="Repeat training", command=lambda: controller.show_frame("ChooseEpochs")).pack()
+        tk.Label(self, text='Training finished.', font=controller.title_font)\
+            .pack(side="top", pady=10)
+        tk.Button(self, text="Return to menu", width=20, command=lambda: controller.show_frame("StartPage"))\
+            .pack(side="top", pady=10)
+        tk.Button(self, text="Repeat training", width=20, command=lambda: controller.show_frame("ChooseEpochs"))\
+            .pack(side="top")
 
 
-def get_classes():
-    out = []
-    for name, obj in inspect.getmembers(sys.modules[__name__]):
-        if inspect.isclass(obj):
-            out.append(obj)
-    return out
+def get_pages():
+    return [obj for name, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isclass(obj)]
 
 
 datasets = []
 datasetName = ""
 datasetDirectory = ""
-active_pages = get_classes()
+active_pages = get_pages()

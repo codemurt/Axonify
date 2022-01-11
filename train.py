@@ -198,6 +198,7 @@ def train(epoch, directory, dsPath):
 
 def generate(datasetName, seed, count_of_images=10):
     directory = f"Datasets/{datasetName}"
+    random.seed(seed)
     torch.manual_seed(seed)
     with open(directory + "/vars.json") as f:
         dataJson = json.load(f)

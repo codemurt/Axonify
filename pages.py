@@ -36,9 +36,9 @@ class StartPage(tk.Frame):
         label = tk.Label(self, text="DCGAN", font=controller.title_font)
         label.pack(side="top", fill="x", pady=10)
 
-        tk.Button(self, text="Generate", width=10, command=lambda: controller.show_frame("GeneratorPage"))\
+        tk.Button(self, text="Generate", width=10, command=lambda: controller.show_frame("GeneratorPage")) \
             .pack(side="top", pady=10)
-        tk.Button(self, text="Training", width=10, command=lambda: controller.show_frame("DatasetSelection"))\
+        tk.Button(self, text="Training", width=10, command=lambda: controller.show_frame("DatasetSelection")) \
             .pack(side="top")
 
 
@@ -80,7 +80,7 @@ class GeneratorPage(tk.Frame):
             epoch_count.delete(0, 'end')
             controller.show_frame("StartPage")
 
-        tk.Button(self, text="Generate", command=lambda: generate_pics(epoch_count.get(), seed.get()), width=10)\
+        tk.Button(self, text="Generate", command=lambda: generate_pics(epoch_count.get(), seed.get()), width=10) \
             .pack(side="top", pady=5)
         tk.Button(self, text="Back", command=show_start, width=10).pack(side="top", pady=5)
 
@@ -163,7 +163,7 @@ class DatasetCreation(tk.Frame):
             controller.show_frame("DatasetSelection")
 
         tk.Button(self, text="Choose the photos folder", command=open_filedialog, width=20).pack(side='top')
-        tk.Button(self, text="Save", command=lambda: create_start_train(name_label.get()), width=10)\
+        tk.Button(self, text="Save", command=lambda: create_start_train(name_label.get()), width=10) \
             .pack(side='top', pady=10)
         tk.Button(self, text="Back", command=back, width=10).pack(side='top')
 
@@ -187,7 +187,7 @@ class ChooseEpochs(tk.Frame):
         def back():
             controller.show_frame("DatasetSelection")
 
-        tk.Button(self, text="Train", command=lambda: set_values(inp1.get()), width=10)\
+        tk.Button(self, text="Train", command=lambda: set_values(inp1.get()), width=10) \
             .pack(side='top')
         tk.Button(self, text="Back", command=back, width=10).pack(side='top', pady=10)
 
@@ -196,11 +196,11 @@ class TrainingEnd(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        tk.Label(self, text='Training finished.', font=controller.title_font)\
+        tk.Label(self, text='Training finished.', font=controller.title_font) \
             .pack(side="top", pady=10)
-        tk.Button(self, text="Return to menu", width=20, command=lambda: controller.show_frame("StartPage"))\
+        tk.Button(self, text="Return to menu", width=20, command=lambda: controller.show_frame("StartPage")) \
             .pack(side="top", pady=10)
-        tk.Button(self, text="Repeat training", width=20, command=lambda: controller.show_frame("ChooseEpochs"))\
+        tk.Button(self, text="Repeat training", width=20, command=lambda: controller.show_frame("ChooseEpochs")) \
             .pack(side="top")
 
 

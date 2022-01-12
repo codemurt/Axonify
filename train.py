@@ -213,8 +213,8 @@ def generate(datasetName, seed, count_of_images=10):
         print("loaded netG")
     print(netG)
 
-    model = RealESRGAN(device, scale=4)
-    model.load_weights('RealESRGAN/weights/RealESRGAN_x4.pth')
+    model = RealESRGAN(device, scale=2)
+    model.load_weights('RealESRGAN/weights/RealESRGAN_x2.pth')
 
     def improve_quality(in_model, path):
         image = Image.open(path).convert('RGB')

@@ -62,7 +62,10 @@ class GeneratorPage(tk.Frame):
         def generate_pics(imgCount, in_seed):
             if not in_seed.isdigit():
                 in_seed = random.randint(0, 9999)
+                print(f"Random seed: {in_seed}")
             if imgCount.isdigit() and not dataset_selector.current() == -1:
+                epoch_count.delete(0, 'end')
+                seed.delete(0, 'end')
                 global datasetName
                 datasetName = dataset_selector.get()
                 global datasetDirectory
@@ -70,10 +73,9 @@ class GeneratorPage(tk.Frame):
                     if len(i) > 3 and i.split()[0] == datasetName:
                         datasetDirectory = i.split()[1]
                         break
+                print(f"Generating {imgCount} image(s) with DSet {datasetName} and seed {in_seed}...")
                 train.generate(datasetName, int(in_seed), imgCount)
-                print(datasetName, in_seed, imgCount)
-                epoch_count.delete(0, 'end')
-                seed.delete(0, 'end')
+                print("Generation finished.")
                 controller.show_frame("GenerationEnd")
 
         def show_start():
@@ -114,6 +116,8 @@ class DatasetSelection(tk.Frame):
                     if len(i) > 3 and i.split()[0] == datasetName:
                         global datasetDirectory
                         datasetDirectory = i.split()[1]
+                        print(f"Chosen dataset: {datasetName}, directory: {datasetDirectory}")
+                        break
                 controller.show_frame("ChooseEpochs")
 
         tk.Button(self, text='Next', command=next_frame, width=15).pack(side='top')
@@ -139,11 +143,12 @@ class DatasetCreation(tk.Frame):
             self.pathToNewSet = askdirectory()
             dir_label['text'] = "Current path: " + self.pathToNewSet
             dir_label.pack(side='top', pady=5)
+            print(f"Directory: {self.pathToNewSet}")
 
         def create_start_train(name):
             if self.pathToNewSet != "" and name != "":
                 name_label.delete(0, 'end')
-                print(self.pathToNewSet, name)
+
                 global datasetName
                 global datasetDirectory
                 datasetName = "".join(name.split())
@@ -156,7 +161,7 @@ class DatasetCreation(tk.Frame):
                 if not os.path.exists(vars_directory + "/vars.json"):
                     with open(vars_directory + "/vars.json", "w") as f:
                         f.write('{"directory": "' + datasetDirectory + '", "image_iterator": 0, "epochs": 0}')
-
+                print(f"Created new dataset. Name: {datasetName}, directory: {datasetDirectory}.")
                 controller.show_frame("ChooseEpochs")
 
         def back():
@@ -180,8 +185,9 @@ class ChooseEpochs(tk.Frame):
             if epochCount.isdigit():
                 epochCounter = int(epochCount)
                 inp1.delete(0, 'end')
-                train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory)
-                print(epochCounter, datasetDirectory, datasetName)
+                print(f"Starting training on DSet {datasetName}"
+                      f" located in {datasetDirectory}, epoch number: {epochCounter}")
+                train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory, datasetName)
                 controller.show_frame("TrainingEnd")
 
         def back():
@@ -211,4 +217,3 @@ def get_pages():
 datasets = []
 datasetName = ""
 datasetDirectory = ""
-active_pages = get_pages()

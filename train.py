@@ -27,12 +27,11 @@ ndf = 64  # Size of feature maps in discriminator
 lr = 0.002  # Learning rate for optimizers
 beta1 = 0.5  # Beta1 hyper-param for Adam optimizers
 ngpu = 1  # Number of GPUs available. Use 0 for CPU mode.
-outputPath = "ResultImages"
+outputPath = "ResultImages/"
 
 
-def train(epoch, directory, dsPath):
+def train(epoch, directory, dsPath, dsName):
     manualSeed = 999
-    print("Seed: ", manualSeed)
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
 
@@ -64,8 +63,7 @@ def train(epoch, directory, dsPath):
     netG.apply(weights_init)
     if dataJson['epochs'] != 0:
         netG.load_state_dict(torch.load(pathNetG))
-        print("loaded netG")
-    print(netG)
+        print("NetG loaded")
 
     class Discriminator(nn.Module):
         def __init__(self, ngpu):
@@ -104,8 +102,7 @@ def train(epoch, directory, dsPath):
     netD.apply(weights_init)
     if dataJson['epochs'] != 0:
         netD.load_state_dict(torch.load(pathNetD))
-        print("loaded netD")
-    print(netD)
+        print("NetD loaded")
 
     criterion = nn.BCELoss()
 
@@ -120,12 +117,12 @@ def train(epoch, directory, dsPath):
     netG.apply(weights_init)
     if dataJson['epochs'] != 0:
         netG.load_state_dict(torch.load(pathNetG))
-        print("loaded netG and optimizerG")
+        print("OptimizerG loaded")
     netD = Discriminator(ngpu).to(device)
     netD.apply(weights_init)
     if dataJson['epochs'] != 0:
         netD.load_state_dict(torch.load(pathNetD))
-        print("loaded netD and optimizerD")
+        print("OptimizerD loaded")
 
         # setup optimizer
     optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
@@ -136,6 +133,7 @@ def train(epoch, directory, dsPath):
     netD.train()
 
     for epoch in range(num_epochs):
+        print(f"Epoch {dataJson['epochs'] + 1}")
         for i, data in enumerate(dataloader, 0):
             ############################
             # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
@@ -182,11 +180,12 @@ def train(epoch, directory, dsPath):
             if i % 30 == 0:
                 fake = netG(fixed_noise)
                 vutils.save_image(fake.detach(),
-                                  '%s/fake_%s.png' % (outputPath, str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))),
+                                  '%s/fake_%s.png' % (outputPath + dsName,
+                                                      str(datetime.now().strftime("%d_%m_%Y_%H_%M_%S"))),
                                   normalize=True)
 
         dataJson['epochs'] += 1
-        # do checkpointing
+
     netG.eval()
     netD.eval()
     torch.save(netG.state_dict(), pathNetG)
@@ -210,8 +209,7 @@ def generate(datasetName, seed, count_of_images=10):
     netG.apply(weights_init)
     if dataJson['epochs'] != 0:
         netG.load_state_dict(torch.load(pathNetG))
-        print("loaded netG")
-    print(netG)
+        print("NetG loaded")
 
     model = RealESRGAN(device, scale=2)
     model.load_weights('RealESRGAN/weights/RealESRGAN_x2.pth')
@@ -226,34 +224,34 @@ def generate(datasetName, seed, count_of_images=10):
         for i in range(int(count_of_images)):
             z = torch.randn(1, 100, 1, 1, device=device)
             fake = netG(z).detach().cpu()
-            dataset_output = outputPath + "/" + datasetName
+            dataset_output = outputPath + datasetName
             if not os.path.exists(dataset_output):
                 os.makedirs(dataset_output)
             outputPathOneImage = dataset_output + f"/generated_{dataJson['image_iterator']}" + ".png"
             vutils.save_image(fake, outputPathOneImage, normalize=True)
             resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
             try:
+                print("Trying improve quality of image...")
                 improve_quality(model, outputPathOneImage)
+                print("Quality improvement finished!")
             except RuntimeError:
                 print("Cannot improve quality")
-
+            print(f"Image {dataJson['image_iterator']} saved in {outputPathOneImage}")
             dataJson['image_iterator'] += 1
     with open(directory + '/vars.json', "w") as f:
         json.dump(dataJson, f)
 
-    print("Images have been generated!")
+    print("Images generation finished!")
 
 
 def resize_image(input_image_path, output_image_path, size):
     original_image = Image.open(input_image_path)
     width, height = original_image.size
-    print('The original image size is {wide} wide x {height} '
-          'high'.format(wide=width, height=height))
+    print(f"The original image size is {width} wide x {height} high")
 
     resized_image = original_image.resize(size)
     width, height = resized_image.size
-    print('The resized image size is {wide} wide x {height} '
-          'high'.format(wide=width, height=height))
+    print(f"The resized image size is {width} wide x {height} high")
     resized_image.show()
     resized_image.save(output_image_path)
 

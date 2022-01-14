@@ -195,7 +195,7 @@ def train(epoch, directory, dsPath, dsName):
     print("Training finished")
 
 
-def generate(datasetName, seed, count_of_images=10):
+def generate(datasetName, seed, show_images, count_of_images=10,):
     directory = f"Datasets/{datasetName}"
     random.seed(seed)
     torch.manual_seed(seed)
@@ -229,7 +229,7 @@ def generate(datasetName, seed, count_of_images=10):
                 os.makedirs(dataset_output)
             outputPathOneImage = dataset_output + f"/generated_{dataJson['image_iterator']}" + ".png"
             vutils.save_image(fake, outputPathOneImage, normalize=True)
-            resize_image(outputPathOneImage, outputPathOneImage, size=(512, 512))
+            resize_image(show_images, outputPathOneImage, outputPathOneImage, size=(512, 512))
             try:
                 print("Trying improve quality of image...")
                 improve_quality(model, outputPathOneImage)
@@ -244,7 +244,7 @@ def generate(datasetName, seed, count_of_images=10):
     print("Images generation finished!")
 
 
-def resize_image(input_image_path, output_image_path, size):
+def resize_image(show_images, input_image_path, output_image_path, size):
     original_image = Image.open(input_image_path)
     width, height = original_image.size
     print(f"The original image size is {width} wide x {height} high")
@@ -252,7 +252,8 @@ def resize_image(input_image_path, output_image_path, size):
     resized_image = original_image.resize(size)
     width, height = resized_image.size
     print(f"The resized image size is {width} wide x {height} high")
-    resized_image.show()
+    if show_images:
+        resized_image.show()
     resized_image.save(output_image_path)
 
 

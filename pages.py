@@ -61,7 +61,7 @@ class GeneratorPage(tk.Frame):
         seed = tk.Entry(self, width=8, justify='center')
         seed.pack(side="top")
 
-        def generate_pics(imgCount, in_seed):
+        def generate_pics(imgCount, in_seed, show_images):
             if not in_seed.isdigit():
                 in_seed = random.randint(0, 9999)
                 print(f"Random seed: {in_seed}")
@@ -76,7 +76,7 @@ class GeneratorPage(tk.Frame):
                         datasetDirectory = i.split()[1]
                         break
                 print(f"Generating {imgCount} image(s) with DSet {datasetName} and seed {in_seed}...")
-                train.generate(datasetName, int(in_seed), imgCount)
+                train.generate(datasetName, int(in_seed), show_images, imgCount)
                 print("Generation finished.")
                 controller.show_frame("GenerationEnd")
 
@@ -84,8 +84,12 @@ class GeneratorPage(tk.Frame):
             epoch_count.delete(0, 'end')
             controller.show_frame("StartPage")
 
-        tk.Button(self, text="Generate", command=lambda: generate_pics(epoch_count.get(), seed.get()), width=10) \
+        image_show = tk.BooleanVar()
+        image_show.set(False)
+        tk.Checkbutton(self, text="Show generated images", variable=image_show, onvalue=1, offvalue=0) \
             .pack(side="top", pady=5)
+        tk.Button(self, text="Generate", command=lambda:generate_pics(epoch_count.get(), seed.get(), image_show),
+                  width=10).pack(side="top", pady=5)
         tk.Button(self, text="Back", command=show_start, width=10).pack(side="top", pady=5)
 
 

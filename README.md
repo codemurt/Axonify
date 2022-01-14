@@ -1,5 +1,8 @@
 # DCGAN + RealESRGAN
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1aQsXD-HvieYQts-X1nqPcZU1uSGNDh5i?usp=sharing)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+
 **Название проекта:** Нейросети как инструмент формирования научно ориентированных абстракций
 
 **Название команды:** *Клюква*

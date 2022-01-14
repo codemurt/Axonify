@@ -8,7 +8,7 @@ import tkinter.ttk as ttk
 from tkinter.filedialog import askdirectory
 from tkinter import font as tkfont
 
-#import train
+import train
 
 
 def get_datasets():
@@ -76,7 +76,7 @@ class GeneratorPage(tk.Frame):
                         datasetDirectory = i.split()[1]
                         break
                 print(f"Generating {imgCount} image(s) with DSet {datasetName} and seed {in_seed}...")
-                # train.generate(datasetName, int(in_seed), imgCount)
+                train.generate(datasetName, int(in_seed), imgCount)
                 print("Generation finished.")
                 controller.show_frame("GenerationEnd")
 
@@ -189,7 +189,7 @@ class ChooseEpochs(tk.Frame):
                 inp1.delete(0, 'end')
                 print(f"Starting training on DSet {datasetName}"
                       f" located in {datasetDirectory}, epoch number: {epochCounter}")
-                # train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory, datasetName)
+                train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory, datasetName)
                 controller.show_frame("TrainingEnd")
 
         def back():

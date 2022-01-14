@@ -5,8 +5,8 @@ import random
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter.filedialog import askdirectory
 from tkinter import font as tkfont
+from tkinter.filedialog import askdirectory
 
 import train
 
@@ -88,7 +88,7 @@ class GeneratorPage(tk.Frame):
         image_show.set(False)
         tk.Checkbutton(self, text="Show generated images", variable=image_show, onvalue=1, offvalue=0) \
             .pack(side="top", pady=5)
-        tk.Button(self, text="Generate", command=lambda:generate_pics(epoch_count.get(), seed.get(), image_show),
+        tk.Button(self, text="Generate", command=lambda: generate_pics(epoch_count.get(), seed.get(), image_show.get()),
                   width=10).pack(side="top", pady=5)
         tk.Button(self, text="Back", command=show_start, width=10).pack(side="top", pady=5)
 
@@ -123,8 +123,8 @@ class DatasetSelection(tk.Frame):
                         global datasetDirectory
                         datasetDirectory = i.split()[1]
                         print(f"Chosen dataset: {datasetName}, directory: {datasetDirectory}")
+                        controller.show_frame("ChooseEpochs")
                         break
-                controller.show_frame("ChooseEpochs")
 
         tk.Button(self, text='Next', command=next_frame, width=15).pack(side='top')
 

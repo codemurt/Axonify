@@ -6,8 +6,9 @@ import sys
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.filedialog import askdirectory
+from tkinter import font as tkfont
 
-import train
+#import train
 
 
 def get_datasets():
@@ -33,13 +34,14 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="DCGAN", font=controller.title_font)
+        label = tk.Label(self, text="DCGAN",
+                         font=tkfont.Font(family='Helvetica', size=25, weight="bold", slant="italic"))
         label.pack(side="top", fill="x", pady=10)
 
-        tk.Button(self, text="Generate", width=10, command=lambda: controller.show_frame("GeneratorPage")) \
-            .pack(side="top", pady=10)
-        tk.Button(self, text="Training", width=10, command=lambda: controller.show_frame("DatasetSelection")) \
-            .pack(side="top")
+        tk.Button(self, text="Generate", height=4, width=20,
+                  command=lambda: controller.show_frame("GeneratorPage")).pack(side="top", pady=15)
+        tk.Button(self, text="Training", height=4, width=20,
+                  command=lambda: controller.show_frame("DatasetSelection")).pack(side="top")
 
 
 class GeneratorPage(tk.Frame):
@@ -74,7 +76,7 @@ class GeneratorPage(tk.Frame):
                         datasetDirectory = i.split()[1]
                         break
                 print(f"Generating {imgCount} image(s) with DSet {datasetName} and seed {in_seed}...")
-                train.generate(datasetName, int(in_seed), imgCount)
+                # train.generate(datasetName, int(in_seed), imgCount)
                 print("Generation finished.")
                 controller.show_frame("GenerationEnd")
 
@@ -187,7 +189,7 @@ class ChooseEpochs(tk.Frame):
                 inp1.delete(0, 'end')
                 print(f"Starting training on DSet {datasetName}"
                       f" located in {datasetDirectory}, epoch number: {epochCounter}")
-                train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory, datasetName)
+                # train.train(epochCounter, "Datasets/" + datasetName, datasetDirectory, datasetName)
                 controller.show_frame("TrainingEnd")
 
         def back():

@@ -118,14 +118,16 @@ def train(epoch, directory, dsPath, dsName):
     netG.apply(weights_init)
     if dataJson['epochs'] != 0:
         netG.load_state_dict(torch.load(pathNetG))
+        optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
         print("OptimizerG loaded")
     netD = Discriminator(ngpu).to(device)
     netD.apply(weights_init)
     if dataJson['epochs'] != 0:
         netD.load_state_dict(torch.load(pathNetD))
+        optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
         print("OptimizerD loaded")
 
-        # setup optimizer
+    # setup optimizer
     optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
     optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
 

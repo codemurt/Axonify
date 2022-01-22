@@ -34,13 +34,16 @@ parser.add_argument('--imageCount', type=int, default=1, help='count of images t
 parser.add_argument('--datasetName', required=True, help='the name for a new dataset')
 parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
 parser.add_argument('--outf', default='.', help='folder to output images and model checkpoints')
-parser.add_argument('--manualSeed', type=int, default=999, help='manual seed')
+parser.add_argument('--manualSeed', type=int, help='manual seed')
 
 opt = parser.parse_args()
 print(opt)
 path_to_dataset = opt.outf + '/' + opt.datasetName
 
-manualSeed = int(opt.manualSeed)
+if opt.manualSeed is None:
+    manualSeed = random.randint(0, 9999)
+else:
+    manualSeed = int(opt.manualSeed)
 print("Random Seed: ", manualSeed)
 random.seed(manualSeed)
 torch.manual_seed(manualSeed)
@@ -52,7 +55,12 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
     cudnn.benchmark = True
 
     # Root directory for dataset
-    dataroot = dataJson["directory"]
+    if opt.dataroot is None:
+        dataroot = dataJson["directory"]
+    else:
+        dataroot = opt.dataroot
+    
+    print("Current path to dataset: " + dataroot)
     pathNetG = path_to_dataset + "/gen.pth"
     pathNetD = path_to_dataset + "/dis.pth"
     outputPath = path_to_dataset + "/ResultImages"

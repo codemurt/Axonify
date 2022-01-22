@@ -99,7 +99,7 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
 
     dataset = dset.ImageFolder(root=dataroot,
                                transform=transforms.Compose([
-                                   transforms.Resize(image_size),
+                                   transforms.Resize([image_size, image_size]),
                                    transforms.CenterCrop(image_size),
                                    transforms.ToTensor(),
                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),

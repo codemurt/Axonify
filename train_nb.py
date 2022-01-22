@@ -230,6 +230,9 @@ elif int(opt.mode) == 1:
         netD.load_state_dict(torch.load(pathNetD))
         print("loaded netD and optimizerD")
     
+    optimizerD = optim.Adam(netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+    optimizerG = optim.Adam(netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+    
     print("Start training")
     for epoch in range(num_epochs):
         for i, data in enumerate(dataloader, 0):

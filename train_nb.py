@@ -42,7 +42,7 @@ path_to_dataset = opt.outf + '/' + opt.datasetName
 print("Folder path to output images and model checkpoints: " + path_to_dataset)
 
 if opt.manualSeed is None:
-    manualSeed = random.randint(0, 9999)
+    manualSeed = random.randint(1, 10000)
 else:
     manualSeed = int(opt.manualSeed)
 print("Random Seed: ", manualSeed)
@@ -70,7 +70,7 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
     workers = int(opt.workers)
 
     # Batch size during training
-    batch_size = int(opt.batchSize)
+    train_batch_size = int(opt.batchSize)
 
     # Spatial size of training images. All images will be resized to this
     #   size using a transformer.
@@ -104,8 +104,9 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
                                    transforms.ToTensor(),
                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                ]))
+    assert dataset
     # Create the dataloader
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=train_batch_size,
                                              shuffle=True, num_workers=workers)
 
     # Decide which device we want to run on
@@ -156,7 +157,6 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
                 output = self.main(input)
             return output
 
-
     class Discriminator(nn.Module):
         def __init__(self, ngpu):
             super(Discriminator, self).__init__()
@@ -190,10 +190,9 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
 
             return output.view(-1, 1).squeeze(1)
 
-
     criterion = nn.BCELoss()
 
-    fixed_noise = torch.randn(batch_size, nz, 1, 1, device=device)
+    fixed_noise = torch.randn(train_batch_size, nz, 1, 1, device=device)
     real_label = 1
     fake_label = 0
 
@@ -230,9 +229,6 @@ elif int(opt.mode) == 1:
     if dataJson['epochs'] != 0:
         netD.load_state_dict(torch.load(pathNetD))
         print("loaded netD and optimizerD")
-
-    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
-    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
     
     print("Start training")
     for epoch in range(num_epochs):

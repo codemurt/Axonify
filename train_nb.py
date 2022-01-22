@@ -231,6 +231,9 @@ elif int(opt.mode) == 1:
     optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
     optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
 
+    netG.train()
+    netD.train()
+    
     print("Start training")
     for epoch in range(num_epochs):
         for i, data in enumerate(dataloader, 0):
@@ -286,7 +289,10 @@ elif int(opt.mode) == 1:
                                   normalize=True)
 
         dataJson['epochs'] += 1
-        # do checkpointing
+    
+    netG.eval()
+    netD.eval()
+    # do checkpointing
     torch.save(netG.state_dict(), pathNetG)
     # torch.save(netG.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_gen.pth")
     torch.save(netD.state_dict(), pathNetD)

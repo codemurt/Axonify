@@ -195,9 +195,6 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
     fixed_noise = torch.randn(train_batch_size, nz, 1, 1, device=device)
     real_label = 1
     fake_label = 0
-    
-    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
-    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
 
 if int(opt.mode) == 0:
     try:
@@ -234,6 +231,9 @@ elif int(opt.mode) == 1:
         netD.load_state_dict(torch.load(pathNetD))
         optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
         print("loaded netD and optimizerD")
+   
+    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
+    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
     
     print("Start training")
     for epoch in range(num_epochs):

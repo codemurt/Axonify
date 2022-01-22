@@ -39,6 +39,7 @@ parser.add_argument('--manualSeed', type=int, help='manual seed')
 opt = parser.parse_args()
 print(opt)
 path_to_dataset = opt.outf + '/' + opt.datasetName
+print("Folder path to output images and model checkpoints: " + path_to_dataset)
 
 if opt.manualSeed is None:
     manualSeed = random.randint(0, 9999)
@@ -109,6 +110,7 @@ if int(opt.mode) == 1 or int(opt.mode) == 2:
 
     # Decide which device we want to run on
     device = torch.device("cuda:0" if (torch.cuda.is_available() and ngpu > 0) else "cpu")
+    print(device)
 
     def weights_init(m):
         classname = m.__class__.__name__
@@ -213,6 +215,7 @@ if int(opt.mode) == 0:
 
     with open(path_to_dataset + "/vars.json", "w") as f:
         f.write('{"directory": "' + opt.dataroot + '", "image_iterator": 0, "epochs": 0}')
+    print("Finish creating dataset")
 elif int(opt.mode) == 1:
     # Number of training epochs
     num_epochs = int(opt.epochs)
@@ -230,9 +233,6 @@ elif int(opt.mode) == 1:
 
     optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
     optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
-
-    netG.train()
-    netD.train()
     
     print("Start training")
     for epoch in range(num_epochs):
@@ -290,8 +290,6 @@ elif int(opt.mode) == 1:
 
         dataJson['epochs'] += 1
     
-    netG.eval()
-    netD.eval()
     # do checkpointing
     torch.save(netG.state_dict(), pathNetG)
     # torch.save(netG.state_dict(), dataroot + str(datetime.now().strftime("%d-%m-%Y_%H:%M:%S")) + "_gen.pth")
